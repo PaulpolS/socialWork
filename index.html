@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Production Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen">
+
+    <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-chart-pie text-2xl"></i>
+                    <span class="font-bold text-xl">Content Dashboard</span>
+                </div>
+                <div>
+                    <button onclick="logout()" class="text-indigo-200 hover:text-white transition-colors text-sm">
+                        <i class="fa-solid fa-key mr-1"></i> เปลี่ยน API Key
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="login-section" class="max-w-md mx-auto mt-20 bg-white p-8 rounded-2xl shadow-xl hidden">
+        <div class="text-center mb-6">
+            <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600 text-2xl">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="text-2xl font-bold">เชื่อมต่อ Google Sheets</h2>
+            <p class="text-gray-500 mt-2 text-sm">กรุณาใส่ Google API Key เพื่อดึงข้อมูล</p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <input type="password" id="api-key-input" placeholder="วาง API Key ที่นี่..." 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+            </div>
+            <button onclick="saveApiKey()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all">
+                เข้าสู่ระบบ
+            </button>
+            <div class="text-xs text-gray-400 text-center mt-4">
+                * AIzaSyAihSSlxF8yeYd0GhyMea4s9vb0aVbY8qw
+            </div>
+        </div>
+    </div>
+
+    <div id="loading-section" class="max-w-7xl mx-auto mt-20 text-center hidden">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
+        <h3 class="text-xl font-medium text-gray-700" id="loading-text">กำลังโหลดข้อมูลชีท...</h3>
+        <p class="text-gray-500 mt-2" id="loading-subtext">อาจใช้เวลาสักครู่ ขึ้นอยู่กับจำนวนข้อมูล</p>
+    </div>
+
+    <div id="dashboard-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
+        
+        <div class="flex border-b border-gray-200 mb-6 overflow-x-auto">
+            <button onclick="switchTab('main')" id="tab-main" class="px-6 py-3 font-semibold text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50 transition-colors flex items-center whitespace-nowrap">
+                <i class="fa-regular fa-file-lines mr-2"></i> บทความ / โพสต์
+            </button>
+            <button onclick="switchTab('youtube')" id="tab-youtube" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
+                <i class="fa-brands fa-youtube mr-2 text-red-500"></i> Youtube
+            </button>
+            <button onclick="switchTab('yok')" id="tab-yok" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
+                <i class="fa-solid fa-gem mr-2 text-emerald-500"></i> หยก
+            </button>
+            <button onclick="switchTab('ai')" id="tab-ai" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
+                <i class="fa-solid fa-robot mr-2 text-purple-500"></i> AI
+            </button>
+            <button onclick="switchTab('horoscope')" id="tab-horoscope" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
+                <i class="fa-solid fa-star mr-2 text-pink-500"></i> ดูดวง
+            </button>
+            <button onclick="switchTab('others')" id="tab-others" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
+                <i class="fa-solid fa-folder-open mr-2 text-slate-500"></i> อื่นๆ
+            </button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h1 class="text-2xl font-bold text-gray-800" id="dashboard-title">ภาพรวมสต็อกคอนเทนต์</h1>
+            <button onclick="fetchData(currentTab, true)" class="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow border border-gray-200 transition-colors flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> อัปเดตข้อมูล
+            </button>
+        </div>
+
+        <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 transition-all">
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex items-center gap-4 border-l-4 border-l-emerald-500">
+                <div class="bg-emerald-100 p-4 rounded-xl text-emerald-600 text-2xl">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 font-medium" id="summary-ready-label">รวม Stock พร้อมโพสต์ทั้งหมด</p>
+                    <h2 class="text-3xl font-bold text-gray-800" id="total-ready">0</h2>
+                </div>
+            </div>
+            
+            <div id="waiting-summary-box" class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex items-center gap-4 border-l-4 border-l-amber-500">
+                <div class="bg-amber-100 p-4 rounded-xl text-amber-600 text-2xl">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">รวม Stock ค้างรอสร้างทั้งหมด</p>
+                    <h2 class="text-3xl font-bold text-gray-800" id="total-waiting">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mb-8">
+            <h2 class="text-lg font-bold text-gray-800 mb-4"><i class="fa-solid fa-ranking-star text-yellow-500 mr-2"></i> Top 10 อันดับ Stock งานเยอะที่สุด</h2>
+            <div class="relative h-72 w-full">
+                <canvas id="topStockChart"></canvas>
+            </div>
+        </div>
+
+        <div class="mb-6 relative">
+            <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
+            <input type="text" id="search-input" onkeyup="filterCards()" placeholder="ค้นหาชื่องาน..." 
+                class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+        </div>
+
+        <div id="sheets-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+
+    </div>
+
+    <script>
+        // รหัสไฟล์ Google Sheets สำหรับงานทั่วไป
+        const SPREADSHEETS = {
+            main: '14jiUb5-96MY6rCIJTWkbcSBmbvCk_v8HdVRc589MjrU',
+            youtube: '1ZqTDnbals2n-dQA-6-GrvYtaWbBf3nDqEkkBtOwJn8A',
+            yok: '1BGCO3xKKeVmaRQiYmfPnYAhWSz-F3KDr5I89seA3I84'
+        };
+
+        // ตั้งค่าเฉพาะเจาะจงสำหรับงาน AI ที่มาจากหลายไฟล์และแผ่นงาน
+        const AI_SOURCES = [
+            { 
+                id: '1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME', 
+                sheetName: 'แนะนำเวป', 
+                cell: 'L2', 
+                displayName: 'คลิปแนะนำเวป',
+                link: 'https://docs.google.com/spreadsheets/d/1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME/edit'
+            },
+            { 
+                id: '1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME', 
+                sheetName: 'ทั้งหมด', 
+                cell: 'K2', 
+                displayName: 'คำคมAI',
+                link: 'https://docs.google.com/spreadsheets/d/1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME/edit#gid=1068625072'
+            },
+            { 
+                id: '1Rr0thsqzrLmTKcmAO_z4dKSZpE_5JexWSJxXn4Ot77U', 
+                sheetName: 'AI', 
+                cell: 'K2', 
+                displayName: 'รูปinfo',
+                link: 'https://docs.google.com/spreadsheets/d/1Rr0thsqzrLmTKcmAO_z4dKSZpE_5JexWSJxXn4Ot77U/edit#gid=1137134987'
+            },
+            { 
+                id: '1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg', 
+                sheetName: 'AI_Clickbait', 
+                cell: 'M2', 
+                displayName: 'รูปแดงClickbait',
+                link: 'https://docs.google.com/spreadsheets/d/1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg/edit?gid=1527366755#gid=1527366755'
+            },
+            { 
+                id: '1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8', 
+                sheetName: 'ข่าวเวปจีน', 
+                cell: 'S2', 
+                displayName: 'ข่าวwebจีน',
+                link: 'https://docs.google.com/spreadsheets/d/1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8/edit?gid=0#gid=0'
+            }
+        ];
+
+        // --------------------------------------------------------------------------------
+        // โครงสร้างสำหรับ Tab ดูดวง และ อื่นๆ (ใส่เป็นโครงไว้ให้คุณมาแก้ ID ใส่ทีหลัง)
+        // หมายเหตุ: หาก id ยังเป็น 'MOCK_ID' ระบบจะทำการสุ่มตัวเลขมาโชว์ให้ดูก่อนเพื่อไม่ให้ Error
+        // --------------------------------------------------------------------------------
+        const HOROSCOPE_SOURCES = [
+            { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'ทั้งหมด', cell: 'P2', displayName: 'รูปinfo', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=0#gid=0' },
+            { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'รีวิวดูดวง', cell: 'L2', displayName: 'รูปรีวิวดูดวง', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=232046644#gid=232046644' },
+            { id: '1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE', sheetName: 'ทั้งหมด', cell: 'L2', displayName: 'คลิปทายใจดูดวง', link: 'https://docs.google.com/spreadsheets/d/1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE/edit?gid=0#gid=0' }
+            
+        ];
+
+        const OTHERS_SOURCES = [
+            { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'A2', displayName: 'งานรีวิวสินค้า (จำลอง)', link: '#' },
+            { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'B2', displayName: 'บทความสปอนเซอร์ (จำลอง)', link: '#' },
+            { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'C2', displayName: 'งานจิปาถะ (จำลอง)', link: '#' }
+        ];
+        // --------------------------------------------------------------------------------
+
+        let chartInstance = null;
+        let currentTab = 'main';
+        // เก็บ Cache ข้อมูลเพื่อจะได้ไม่ต้องโหลดใหม่เวลาสลับ Tab
+        let sheetsData = {
+            main: null,
+            youtube: null,
+            yok: null,
+            ai: null,
+            horoscope: null,
+            others: null
+        };
+
+        // ฟังก์ชันเริ่มต้นเมื่อโหลดหน้าเว็บ
+        window.onload = () => {
+            const apiKey = localStorage.getItem('google_api_key');
+            if (apiKey) {
+                switchTab('main');
+            } else {
+                showSection('login-section');
+            }
+        }
+
+        // สลับการแสดงผลหน้าจอ
+        function showSection(sectionId) {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('loading-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        // บันทึก API Key
+        function saveApiKey() {
+            const input = document.getElementById('api-key-input').value.trim();
+            if (!input) {
+                alert('กรุณากรอก API Key');
+                return;
+            }
+            localStorage.setItem('google_api_key', input);
+            fetchData(currentTab, true);
+        }
+
+        // ล้าง API Key
+        function logout() {
+            localStorage.removeItem('google_api_key');
+            document.getElementById('api-key-input').value = '';
+            showSection('login-section');
+        }
+
+        // อัปเดตข้อความโหลด
+        function updateLoadingText(text, subtext = '') {
+            document.getElementById('loading-text').innerText = text;
+            document.getElementById('loading-subtext').innerText = subtext;
+        }
+
+        // ฟังก์ชันเปลี่ยน Tab
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabs = ['main', 'youtube', 'yok', 'ai', 'horoscope', 'others'];
+            
+            const activeClass = "px-6 py-3 font-semibold text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50 transition-colors flex items-center whitespace-nowrap";
+            const inactiveClass = "px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap";
+            
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).className = t === tab ? activeClass : inactiveClass;
+            });
+
+            const apiKey = localStorage.getItem('google_api_key');
+            if (!apiKey) {
+                showSection('login-section');
+                return;
+            }
+
+            if (sheetsData[tab]) {
+                renderDashboard();
+                showSection('dashboard-section');
+            } else {
+                fetchData(tab);
+            }
+        }
+
+        // ฟังก์ชันหลักดึงข้อมูล
+        async function fetchData(tab = currentTab, forceRefresh = false) {
+            const apiKey = localStorage.getItem('google_api_key');
+            showSection('loading-section');
+            
+            try {
+                // ============================================
+                // การดึงข้อมูลสำหรับ Tab ที่ใช้ Sources แบบแยกไฟล์ (AI, Horoscope, Others)
+                // ============================================
+                if (tab === 'ai' || tab === 'horoscope' || tab === 'others') {
+                    const sectionLabels = { ai: 'งาน AI', horoscope: 'ดูดวง', others: 'งานอื่นๆ' };
+                    updateLoadingText(`กำลังดาวน์โหลดข้อมูล${sectionLabels[tab]}...`);
+                    
+                    let tabData = [];
+                    let sources = [];
+                    
+                    if (tab === 'ai') sources = AI_SOURCES;
+                    else if (tab === 'horoscope') sources = HOROSCOPE_SOURCES;
+                    else if (tab === 'others') sources = OTHERS_SOURCES;
+                    
+                    const fetchPromises = sources.map(source => {
+                        // ระบบป้องกัน Error: ถ้ายังไม่ได้ใส่ ID ของจริง ให้ส่งค่าสุ่มกลับไปเลย
+                        if (source.id === 'MOCK_ID') {
+                            return Promise.resolve({
+                                source,
+                                data: { values: [[Math.floor(Math.random() * 50) + 5]] } // สุ่มเลขให้ดูเป็นตัวอย่าง 5-54
+                            });
+                        }
+
+                        // ถ้ามี ID จริง จะวิ่งเข้า API ตรงนี้
+                        const range = encodeURIComponent(`${source.sheetName}!${source.cell}`);
+                        const url = `https://sheets.googleapis.com/v4/spreadsheets/${source.id}/values/${range}?key=${apiKey}`;
+                        return fetch(url).then(res => {
+                            if (!res.ok) throw new Error(`ไม่สามารถดึงข้อมูล ${source.displayName} ได้`);
+                            return res.json();
+                        }).then(data => ({ source, data }));
+                    });
+
+                    const results = await Promise.all(fetchPromises);
+
+                    results.forEach(res => {
+                        let readyCount = 0;
+                        if (res.data.values && res.data.values.length > 0 && res.data.values[0].length > 0) {
+                            const val = parseInt(res.data.values[0][0].toString().replace(/,/g, ''), 10);
+                            readyCount = isNaN(val) ? 0 : val;
+                        }
+                        
+                        tabData.push({
+                            title: res.source.displayName,
+                            readyCount: readyCount,
+                            waitingCount: 0,
+                            link: res.source.link
+                        });
+                    });
+                    
+                    sheetsData[tab] = tabData;
+                    renderDashboard();
+                    showSection('dashboard-section');
+                    return; 
+                }
+
+                // ============================================
+                // การดึงข้อมูลปกติสำหรับ Tab อื่นๆ (Main, Youtube, Yok)
+                // ============================================
+                const sheetLabels = { main: 'บทความ / โพสต์', youtube: 'Youtube', yok: 'หยก' };
+                updateLoadingText(`กำลังตรวจสอบรายชื่อชีททั้งหมด (${sheetLabels[tab]})...`);
+                const sheetId = SPREADSHEETS[tab];
+                
+                const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`;
+                const metaResponse = await fetch(metaUrl);
+                
+                if (!metaResponse.ok) throw new Error(`API Error: ${metaResponse.status} ${metaResponse.statusText}`);
+                
+                const metaData = await metaResponse.json();
+                let sheetNames = metaData.sheets.map(sheet => sheet.properties.title);
+                
+                if (tab === 'yok') {
+                    sheetNames = sheetNames.filter(name => 
+                        name.includes('ClickBait') || name.toLowerCase().includes('info')
+                    );
+                }
+                
+                let tabData = [];
+                const chunkSize = 15; 
+
+                for (let i = 0; i < sheetNames.length; i += chunkSize) {
+                    const chunk = sheetNames.slice(i, i + chunkSize);
+                    updateLoadingText(`กำลังดาวน์โหลดข้อมูลชุดที่ ${Math.floor(i/chunkSize) + 1}/${Math.ceil(sheetNames.length/chunkSize)}...`, `ชีท ${i+1} ถึง ${Math.min(i+chunkSize, sheetNames.length)}`);
+                    
+                    const ranges = chunk.map(name => {
+                        if (tab === 'main') {
+                            return `ranges=${encodeURIComponent(name + '!F:F')}&ranges=${encodeURIComponent(name + '!K2')}`;
+                        } else if (tab === 'youtube') {
+                            return `ranges=${encodeURIComponent(name + '!P2')}`;
+                        } else if (tab === 'yok') {
+                            const targetCell = name.includes('ClickBait') ? 'H2' : 'M2';
+                            return `ranges=${encodeURIComponent(name + '!' + targetCell)}`;
+                        }
+                    }).join('&');
+
+                    const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?${ranges}&key=${apiKey}`;
+                    const batchResponse = await fetch(batchUrl);
+                    
+                    if (!batchResponse.ok) throw new Error(`Batch API Error: ${batchResponse.status}`);
+
+                    const batchData = await batchResponse.json();
+                    
+                    for (let j = 0; j < chunk.length; j++) {
+                        let readyCount = 0;
+                        let waitingCount = 0;
+
+                        if (tab === 'main') {
+                            const colFData = batchData.valueRanges[j * 2].values || [];
+                            const colK2Data = batchData.valueRanges[j * 2 + 1].values || [];
+
+                            colFData.forEach(row => {
+                                if (row[0] && row[0].toString().trim().toUpperCase() === 'N') waitingCount++;
+                            });
+
+                            if (colK2Data.length > 0 && colK2Data[0].length > 0) {
+                                const val = parseInt(colK2Data[0][0].toString().replace(/,/g, ''), 10);
+                                readyCount = isNaN(val) ? 0 : val;
+                            }
+                        } else if (tab === 'youtube' || tab === 'yok') {
+                            const colData = batchData.valueRanges[j].values || [];
+                            if (colData.length > 0 && colData[0].length > 0) {
+                                const val = parseInt(colData[0][0].toString().replace(/,/g, ''), 10);
+                                readyCount = isNaN(val) ? 0 : val;
+                            }
+                        }
+
+                        tabData.push({
+                            title: chunk[j],
+                            readyCount: readyCount,
+                            waitingCount: waitingCount,
+                            sheetId: sheetId
+                        });
+                    }
+                }
+
+                sheetsData[tab] = tabData;
+                renderDashboard();
+                showSection('dashboard-section');
+
+            } catch (error) {
+                console.error(error);
+                alert(`เกิดข้อผิดพลาดในการดึงข้อมูล: ${error.message}\n(ตรวจสอบ API Key หรือสิทธิ์การเข้าถึงไฟล์)`);
+                showSection('login-section');
+            }
+        }
+
+        // ฟังก์ชันสร้างหน้าตา Dashboard
+        function renderDashboard() {
+            const data = sheetsData[currentTab];
+            if (!data) return;
+
+            const summaryGrid = document.getElementById('summary-grid');
+            const waitingBox = document.getElementById('waiting-summary-box');
+            
+            const titles = {
+                main: 'ภาพรวมสต็อกบทความและโพสต์',
+                youtube: 'ภาพรวมสต็อกคลิป Youtube',
+                yok: 'ภาพรวมสต็อกงานหยก',
+                ai: 'ภาพรวมสต็อกคอนเทนต์ AI',
+                horoscope: 'ภาพรวมสต็อกคอนเทนต์ดูดวง',
+                others: 'ภาพรวมสต็อกงานอื่นๆ'
+            };
+            document.getElementById('dashboard-title').innerText = titles[currentTab];
+            
+            document.getElementById('summary-ready-label').innerText = currentTab === 'main' ? 'รวม Stock พร้อมโพสต์ทั้งหมด' : 'รวม Stock งานทั้งหมด';
+
+            // ซ่อนกล่อง "รอสร้าง" สำหรับ Tab อื่นที่ไม่ใช่ Main
+            if (['youtube', 'yok', 'ai', 'horoscope', 'others'].includes(currentTab)) {
+                summaryGrid.classList.remove('md:grid-cols-2');
+                summaryGrid.classList.add('md:grid-cols-1');
+                waitingBox.classList.add('hidden');
+                waitingBox.classList.remove('flex');
+            } else {
+                summaryGrid.classList.remove('md:grid-cols-1');
+                summaryGrid.classList.add('md:grid-cols-2');
+                waitingBox.classList.remove('hidden');
+                waitingBox.classList.add('flex');
+            }
+
+            const totalReady = data.reduce((sum, sheet) => sum + sheet.readyCount, 0);
+            const totalWaiting = data.reduce((sum, sheet) => sum + sheet.waitingCount, 0);
+            
+            document.getElementById('total-ready').innerText = totalReady.toLocaleString();
+            document.getElementById('total-waiting').innerText = totalWaiting.toLocaleString();
+
+            const sortedForChart = [...data].sort((a, b) => b.readyCount - a.readyCount).slice(0, 10);
+            renderChart(sortedForChart);
+            renderCards(data);
+        }
+
+        // ฟังก์ชันวาดกราฟ Top 10
+        function renderChart(data) {
+            const ctx = document.getElementById('topStockChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const labels = data.map(item => item.title);
+            const values = data.map(item => item.readyCount);
+            
+            // ตั้งค่าสีกราฟตาม Tab
+            let colorMain = [79, 70, 229]; // Indigo
+            if (currentTab === 'youtube') colorMain = [220, 38, 38]; // Red
+            else if (currentTab === 'yok') colorMain = [16, 185, 129]; // Emerald
+            else if (currentTab === 'ai') colorMain = [168, 85, 247]; // Purple
+            else if (currentTab === 'horoscope') colorMain = [236, 72, 153]; // Pink
+            else if (currentTab === 'others') colorMain = [100, 116, 139]; // Slate
+
+            const backgroundColors = values.map((val, index) => 
+                index === 0 ? `rgba(${colorMain[0]}, ${colorMain[1]}, ${colorMain[2]}, 0.8)` : `rgba(${colorMain[0]}, ${colorMain[1]}, ${colorMain[2]}, 0.4)`
+            );
+            const borderColors = values.map((val, index) => 
+                `rgb(${colorMain[0]}, ${colorMain[1]}, ${colorMain[2]})`
+            );
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'จำนวน Stock',
+                        data: values,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: function(context) { return ` มีจำนวน: ${context.raw} รายการ`; } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#f3f4f6' } },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                callback: function(value, index) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.length > 15 ? label.substr(0, 15) + '...' : label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ฟังก์ชันสร้าง Card รายชีท
+        function renderCards(data) {
+            const grid = document.getElementById('sheets-grid');
+            grid.innerHTML = '';
+
+            if (data.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400">ไม่พบข้อมูล</div>`;
+                return;
+            }
+
+            data.forEach(sheet => {
+                const hasReady = sheet.readyCount > 0;
+                const hasWaiting = sheet.waitingCount > 0;
+
+                const readyBadge = hasReady 
+                    ? `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-check-circle mr-1"></i>มี Stock</span>`
+                    : `<span class="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full">ไม่มี Stock</span>`;
+
+                const waitingBadge = hasWaiting
+                    ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-clock mr-1"></i>รอสร้าง (${sheet.waitingCount})</span>`
+                    : `<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-thumbs-up mr-1"></i>สร้างครบแล้ว</span>`;
+
+                const waitingRowHtml = currentTab === 'main' ? `
+                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                        <div class="flex flex-col">
+                            <span class="text-sm text-gray-500">Stock รอสร้าง</span>
+                            <span class="text-2xl font-bold text-amber-500">${sheet.waitingCount}</span>
+                        </div>
+                        <div class="text-right">
+                            ${waitingBadge}
+                        </div>
+                    </div>
+                ` : '';
+
+                // กำหนดประเภทและสีของแถบหน้าการ์ดตาม Tab
+                let itemLabel = 'พร้อมโพสต์';
+                let valueColorClass = 'text-emerald-600';
+                let indicatorColor = 'bg-emerald-400';
+                
+                if (currentTab === 'youtube') {
+                    itemLabel = 'คลิป'; valueColorClass = 'text-red-600'; indicatorColor = 'bg-red-500';
+                } else if (currentTab === 'yok') {
+                    itemLabel = 'งาน'; valueColorClass = 'text-emerald-600'; indicatorColor = 'bg-emerald-500';
+                } else if (currentTab === 'ai') {
+                    itemLabel = 'งาน AI'; valueColorClass = 'text-purple-600'; indicatorColor = 'bg-purple-500';
+                } else if (currentTab === 'horoscope') {
+                    itemLabel = 'ดวง'; valueColorClass = 'text-pink-600'; indicatorColor = 'bg-pink-500';
+                } else if (currentTab === 'others') {
+                    itemLabel = 'ชิ้นงาน'; valueColorClass = 'text-slate-600'; indicatorColor = 'bg-slate-500';
+                }
+
+                const targetUrl = sheet.link ? sheet.link : `https://docs.google.com/spreadsheets/d/${sheet.sheetId}/edit#gid=0`;
+
+                const cardHtml = `
+                    <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group sheet-card">
+                        ${hasReady ? `<div class="absolute top-0 right-0 w-2 h-full ${indicatorColor}"></div>` : ''}
+                        ${hasWaiting && currentTab === 'main' ? `<div class="absolute top-0 right-0 w-2 h-full bg-amber-400"></div>` : ''}
+                        
+                        <h3 class="font-bold text-lg text-gray-800 mb-4 truncate sheet-title" title="${sheet.title}">
+                            ${sheet.title}
+                        </h3>
+                        
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <div class="flex flex-col">
+                                    <span class="text-sm text-gray-500">จำนวน Stock ${itemLabel}</span>
+                                    <span class="text-2xl font-bold ${valueColorClass}">${sheet.readyCount}</span>
+                                </div>
+                                <div class="text-right">
+                                    ${readyBadge}
+                                </div>
+                            </div>
+                            ${waitingRowHtml}
+                        </div>
+
+                        <div class="mt-5 pt-3 border-t border-gray-100">
+                            <a href="${targetUrl}" target="_blank" 
+                               class="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-medium transition-colors">
+                                เปิดใน Google Sheets <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += cardHtml;
+            });
+        }
+
+        // ฟังก์ชันค้นหาและกรองชีท
+        function filterCards() {
+            const searchText = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.sheet-card');
+            
+            cards.forEach(card => {
+                const title = card.querySelector('.sheet-title').innerText.toLowerCase();
+                if (title.includes(searchText)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
