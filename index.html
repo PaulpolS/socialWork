@@ -9,637 +9,820 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-        body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #f3f4f6;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+        body { font-family: 'Prompt', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        body.light { background-color: #f3f4f6; color: #1f2937; }
+        body.dark { background-color: #0f172a; color: #e2e8f0; }
+        .glass-card { backdrop-filter: blur(10px); transition: background-color 0.3s, border-color 0.3s; }
+        .light .glass-card { background: rgba(255,255,255,0.95); border: 1px solid rgba(229,231,235,1); }
+        .dark .glass-card { background: rgba(30,41,59,0.95); border: 1px solid rgba(51,65,85,1); }
+        .light .card-bg { background: #fff; border-color: #f3f4f6; }
+        .dark .card-bg { background: #1e293b; border-color: #334155; }
+        .light .nav-bg { background: #4f46e5; }
+        .dark .nav-bg { background: #1e293b; }
+        .light .input-bg { background: #fff; border-color: #d1d5db; color: #1f2937; }
+        .dark .input-bg { background: #334155; border-color: #475569; color: #e2e8f0; }
+        .light .tab-active { color: #4f46e5; border-color: #4f46e5; background: rgba(79,70,229,0.05); }
+        .dark .tab-active { color: #818cf8; border-color: #818cf8; background: rgba(129,140,248,0.1); }
+        .light .tab-inactive { color: #6b7280; }
+        .dark .tab-inactive { color: #94a3b8; }
+        .light .text-main { color: #1f2937; }
+        .dark .text-main { color: #e2e8f0; }
+        .light .text-sub { color: #6b7280; }
+        .dark .text-sub { color: #94a3b8; }
+        .light .section-bg { background: #fff; }
+        .dark .section-bg { background: #1e293b; }
+        .light .border-subtle { border-color: #f3f4f6; }
+        .dark .border-subtle { border-color: #334155; }
+        .light .hover-bg:hover { background: #f9fafb; }
+        .dark .hover-bg:hover { background: #334155; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .priority-high { border-left: 4px solid #ef4444; }
+        .priority-medium { border-left: 4px solid #f59e0b; }
+        .priority-low { border-left: 4px solid #22c55e; }
+        .emoji-picker { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; max-height: 200px; overflow-y: auto; }
+        .emoji-picker button { font-size: 1.3rem; padding: 4px; border-radius: 6px; cursor: pointer; border: none; background: transparent; }
+        .emoji-picker button:hover { background: rgba(99,102,241,0.15); }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .stock-bar { height: 8px; border-radius: 9999px; transition: width 0.6s ease; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+        /* Drag & Drop */
+        .dragging { opacity: 0.4; transform: scale(0.95); }
+        .drag-over { border: 2px dashed #6366f1 !important; }
+        .draggable-box { cursor: grab; }
+        .draggable-box:active { cursor: grabbing; }
+        /* Notes */
+        .note-textarea { resize: vertical; min-height: 80px; }
     </style>
-    <link rel="apple-touch-icon" href="https://img2.pic.in.th/449404894_749103477429193_6726520345297475244_n.jpg">
 </head>
-<body class="text-gray-800 min-h-screen">
+<body class="light min-h-screen">
 
-    <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-chart-pie text-2xl"></i>
-                    <span class="font-bold text-xl">Content Dashboard</span>
-                </div>
-                <div>
-                    <button onclick="logout()" class="text-indigo-200 hover:text-white transition-colors text-sm">
-                        <i class="fa-solid fa-key mr-1"></i> เปลี่ยน API Key
-                    </button>
-                </div>
+<!-- NAV -->
+<nav class="nav-bg text-white shadow-lg sticky top-0 z-50 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-chart-pie text-2xl"></i>
+                <span class="font-bold text-xl">Content Dashboard</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="exportAllData()" class="p-2 rounded-lg hover:bg-white/10 transition-colors" title="Export ข้อมูล">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </button>
+                <button onclick="document.getElementById('import-file').click()" class="p-2 rounded-lg hover:bg-white/10 transition-colors" title="Import ข้อมูล">
+                    <i class="fa-solid fa-upload text-sm"></i>
+                </button>
+                <input type="file" id="import-file" accept=".json" class="hidden" onchange="importAllData(event)">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-white/10 transition-colors" title="Night Mode">
+                    <i class="fa-solid fa-moon text-lg" id="dark-mode-icon"></i>
+                </button>
+                <button onclick="logout()" class="text-indigo-200 hover:text-white transition-colors text-sm ml-1">
+                    <i class="fa-solid fa-key mr-1"></i> เปลี่ยน API Key
+                </button>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <div id="login-section" class="max-w-md mx-auto mt-20 bg-white p-8 rounded-2xl shadow-xl hidden">
-        <div class="text-center mb-6">
-            <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600 text-2xl">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-            <h2 class="text-2xl font-bold">เชื่อมต่อ Google Sheets</h2>
-            <p class="text-gray-500 mt-2 text-sm">กรุณาใส่ Google API Key เพื่อดึงข้อมูล</p>
-        </div>
+<!-- LOGIN -->
+<div id="login-section" class="max-w-md mx-auto mt-20 section-bg p-8 rounded-2xl shadow-xl hidden">
+    <div class="text-center mb-6">
+        <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600 text-2xl"><i class="fa-solid fa-lock"></i></div>
+        <h2 class="text-2xl font-bold text-main">เชื่อมต่อ Google Sheets</h2>
+        <p class="text-sub mt-2 text-sm">กรุณาใส่ Google API Key เพื่อดึงข้อมูล</p>
+    </div>
+    <div class="space-y-4">
+        <input type="password" id="api-key-input" placeholder="วาง API Key ที่นี่..." class="w-full px-4 py-3 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+        <button onclick="saveApiKey()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all">เข้าสู่ระบบ</button>
+        <div class="text-xs text-sub text-center mt-4">* AIzaSyAihSSlxF8yeYd0GhyMea4s9vb0aVbY8qw</div>
+    </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-section" class="max-w-7xl mx-auto mt-20 text-center hidden">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
+    <h3 class="text-xl font-medium text-main" id="loading-text">กำลังโหลดข้อมูลชีท...</h3>
+    <p class="text-sub mt-2" id="loading-subtext">อาจใช้เวลาสักครู่</p>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
+    <div class="flex items-center border-b border-subtle mb-6 overflow-x-auto" id="tabs-bar"></div>
+    <div id="tab-content" class="fade-in"></div>
+</div>
+
+<!-- MODAL: Create Tab -->
+<div id="modal-create-tab" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('modal-create-tab')">
+    <div class="section-bg rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in">
+        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-plus-circle text-indigo-500 mr-2"></i>สร้าง Tab ใหม่</h3>
         <div class="space-y-4">
-            <div>
-                <input type="password" id="api-key-input" placeholder="วาง API Key ที่นี่..." 
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+            <div><label class="text-sm text-sub font-medium">ชื่อ Tab</label><input id="new-tab-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น งานพิเศษ"></div>
+            <div><label class="text-sm text-sub font-medium">Emoji</label>
+                <div class="mt-1 flex items-center gap-3"><span id="new-tab-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('new-tab-emoji-picker').classList.toggle('hidden')">📁</span><input id="new-tab-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="วาง emoji" oninput="document.getElementById('new-tab-emoji-preview').innerText=this.value||'📁'"></div>
+                <div id="new-tab-emoji-picker" class="emoji-picker mt-2 hidden"></div>
             </div>
-            <button onclick="saveApiKey()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all">
-                เข้าสู่ระบบ
-            </button>
-            <div class="text-xs text-gray-400 text-center mt-4">
-                * AIzaSyAihSSlxF8yeYd0GhyMea4s9vb0aVbY8qw
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeModal('modal-create-tab')" class="flex-1 py-2.5 rounded-lg border border-gray-300 text-sub hover-bg transition-colors">ยกเลิก</button>
+                <button onclick="createCustomTab()" class="flex-1 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors">สร้าง</button>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="loading-section" class="max-w-7xl mx-auto mt-20 text-center hidden">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
-        <h3 class="text-xl font-medium text-gray-700" id="loading-text">กำลังโหลดข้อมูลชีท...</h3>
-        <p class="text-gray-500 mt-2" id="loading-subtext">อาจใช้เวลาสักครู่ ขึ้นอยู่กับจำนวนข้อมูล</p>
-    </div>
-
-    <div id="dashboard-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
-        
-        <div class="flex border-b border-gray-200 mb-6 overflow-x-auto">
-            <button onclick="switchTab('main')" id="tab-main" class="px-6 py-3 font-semibold text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50 transition-colors flex items-center whitespace-nowrap">
-                <i class="fa-regular fa-file-lines mr-2"></i> บทความ / โพสต์
-            </button>
-            <button onclick="switchTab('youtube')" id="tab-youtube" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
-                <i class="fa-brands fa-youtube mr-2 text-red-500"></i> Youtube
-            </button>
-            <button onclick="switchTab('yok')" id="tab-yok" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
-                <i class="fa-solid fa-gem mr-2 text-emerald-500"></i> หยก
-            </button>
-            <button onclick="switchTab('ai')" id="tab-ai" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
-                <i class="fa-solid fa-robot mr-2 text-purple-500"></i> AI
-            </button>
-            <button onclick="switchTab('horoscope')" id="tab-horoscope" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
-                <i class="fa-solid fa-star mr-2 text-pink-500"></i> ดูดวง
-            </button>
-            <button onclick="switchTab('others')" id="tab-others" class="px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap">
-                <i class="fa-solid fa-folder-open mr-2 text-slate-500"></i> อื่นๆ
-            </button>
+<!-- MODAL: Create Box -->
+<div id="modal-create-box" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('modal-create-box')">
+    <div class="section-bg rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in" style="max-height:90vh;overflow-y:auto">
+        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-box-open text-indigo-500 mr-2"></i>สร้างกล่องติดตามงาน</h3>
+        <div class="space-y-4">
+            <div><label class="text-sm text-sub font-medium">ชื่อกล่อง</label><input id="new-box-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น งานคลิปสั้น"></div>
+            <div><label class="text-sm text-sub font-medium">Emoji</label>
+                <div class="mt-1 flex items-center gap-3"><span id="new-box-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('new-box-emoji-picker').classList.toggle('hidden')">📦</span><input id="new-box-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="วาง emoji" oninput="document.getElementById('new-box-emoji-preview').innerText=this.value||'📦'"></div>
+                <div id="new-box-emoji-picker" class="emoji-picker mt-2 hidden"></div>
+            </div>
+            <div><label class="text-sm text-sub font-medium">Spreadsheet ID</label><input id="new-box-sheet-id" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none text-xs" placeholder="เช่น 14jiUb5-96MY6rCIJTWkbcSBmbvCk..."></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="text-sm text-sub font-medium">ชื่อ Sheet</label><input id="new-box-sheet-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น ทั้งหมด"></div>
+                <div><label class="text-sm text-sub font-medium">Cell</label><input id="new-box-cell" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น K2"></div>
+            </div>
+            <div><label class="text-sm text-sub font-medium">Link (ไม่บังคับ)</label><input id="new-box-link" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none text-xs" placeholder="https://docs.google.com/spreadsheets/d/..."></div>
+            <div><label class="text-sm text-sub font-medium">สีธีม</label>
+                <div class="flex gap-2 mt-1 flex-wrap">
+                    <button onclick="selectBoxColor('indigo')" class="w-8 h-8 rounded-full bg-indigo-500 border-2 border-transparent hover:border-white box-color-btn" data-color="indigo"></button>
+                    <button onclick="selectBoxColor('red')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-transparent hover:border-white box-color-btn" data-color="red"></button>
+                    <button onclick="selectBoxColor('emerald')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-transparent hover:border-white box-color-btn" data-color="emerald"></button>
+                    <button onclick="selectBoxColor('purple')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-transparent hover:border-white box-color-btn" data-color="purple"></button>
+                    <button onclick="selectBoxColor('pink')" class="w-8 h-8 rounded-full bg-pink-500 border-2 border-transparent hover:border-white box-color-btn" data-color="pink"></button>
+                    <button onclick="selectBoxColor('amber')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-transparent hover:border-white box-color-btn" data-color="amber"></button>
+                    <button onclick="selectBoxColor('sky')" class="w-8 h-8 rounded-full bg-sky-500 border-2 border-transparent hover:border-white box-color-btn" data-color="sky"></button>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeModal('modal-create-box')" class="flex-1 py-2.5 rounded-lg border border-gray-300 text-sub hover-bg transition-colors">ยกเลิก</button>
+                <button onclick="createCustomBox()" class="flex-1 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors">สร้าง</button>
+            </div>
         </div>
+    </div>
+</div>
 
+<!-- MODAL: Edit Box -->
+<div id="modal-edit-box" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('modal-edit-box')">
+    <div class="section-bg rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in" style="max-height:90vh;overflow-y:auto">
+        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-pen text-indigo-500 mr-2"></i>แก้ไขกล่อง</h3>
+        <div class="space-y-4">
+            <div><label class="text-sm text-sub font-medium">ชื่อกล่อง</label><input id="edit-box-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+            <div><label class="text-sm text-sub font-medium">Emoji</label>
+                <div class="mt-1 flex items-center gap-3"><span id="edit-box-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('edit-box-emoji-picker').classList.toggle('hidden')">📦</span><input id="edit-box-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" oninput="document.getElementById('edit-box-emoji-preview').innerText=this.value||'📦'"></div>
+                <div id="edit-box-emoji-picker" class="emoji-picker mt-2 hidden"></div>
+            </div>
+            <div><label class="text-sm text-sub font-medium">Spreadsheet ID</label><input id="edit-box-sheet-id" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none text-xs"></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="text-sm text-sub font-medium">ชื่อ Sheet</label><input id="edit-box-sheet-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                <div><label class="text-sm text-sub font-medium">Cell</label><input id="edit-box-cell" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+            </div>
+            <div><label class="text-sm text-sub font-medium">Link</label><input id="edit-box-link" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none text-xs"></div>
+            <div><label class="text-sm text-sub font-medium">สีธีม</label>
+                <div class="flex gap-2 mt-1 flex-wrap">
+                    <button onclick="selectEditBoxColor('indigo')" class="w-8 h-8 rounded-full bg-indigo-500 border-2 border-transparent hover:border-white edit-box-color-btn" data-color="indigo"></button>
+                    <button onclick="selectEditBoxColor('red')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-transparent hover:border-white edit-box-color-btn" data-color="red"></button>
+                    <button onclick="selectEditBoxColor('emerald')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-transparent hover:border-white edit-box-color-btn" data-color="emerald"></button>
+                    <button onclick="selectEditBoxColor('purple')" class="w-8 h-8 rounded-full bg-purple-500 border-2 border-transparent hover:border-white edit-box-color-btn" data-color="purple"></button>
+                    <button onclick="selectEditBoxColor('pink')" class="w-8 h-8 rounded-full bg-pink-500 border-2 border-transparent hover:border-white edit-box-color-btn" data-color="pink"></button>
+                    <button onclick="selectEditBoxColor('amber')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-transparent hover:border-white edit-box-color-btn" data-color="amber"></button>
+                    <button onclick="selectEditBoxColor('sky')" class="w-8 h-8 rounded-full bg-sky-500 border-2 border-transparent hover:border-white edit-box-color-btn" data-color="sky"></button>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="deleteEditBox()" class="py-2.5 px-4 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors"><i class="fa-solid fa-trash mr-1"></i>ลบ</button>
+                <div class="flex-1"></div>
+                <button onclick="closeModal('modal-edit-box')" class="py-2.5 px-4 rounded-lg border border-gray-300 text-sub hover-bg transition-colors">ยกเลิก</button>
+                <button onclick="saveEditBox()" class="py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===========================
+// CONFIG & STATE
+// ===========================
+const SPREADSHEETS = {
+    main: '14jiUb5-96MY6rCIJTWkbcSBmbvCk_v8HdVRc589MjrU',
+    youtube: '1ZqTDnbals2n-dQA-6-GrvYtaWbBf3nDqEkkBtOwJn8A',
+    yok: '1BGCO3xKKeVmaRQiYmfPnYAhWSz-F3KDr5I89seA3I84'
+};
+const AI_SOURCES = [
+    { id: '1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME', sheetName: 'แนะนำเวป', cell: 'L2', displayName: 'คลิปแนะนำเวป', link: 'https://docs.google.com/spreadsheets/d/1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME/edit' },
+    { id: '1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME', sheetName: 'ทั้งหมด', cell: 'K2', displayName: 'คำคมAI', link: 'https://docs.google.com/spreadsheets/d/1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME/edit#gid=1068625072' },
+    { id: '1Rr0thsqzrLmTKcmAO_z4dKSZpE_5JexWSJxXn4Ot77U', sheetName: 'AI', cell: 'K2', displayName: 'รูปinfo', link: 'https://docs.google.com/spreadsheets/d/1Rr0thsqzrLmTKcmAO_z4dKSZpE_5JexWSJxXn4Ot77U/edit#gid=1137134987' },
+    { id: '1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg', sheetName: 'AI_Clickbait', cell: 'M2', displayName: 'รูปแดงClickbait', link: 'https://docs.google.com/spreadsheets/d/1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg/edit?gid=1527366755#gid=1527366755' },
+    { id: '1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8', sheetName: 'ข่าวเวปจีน', cell: 'S2', displayName: 'ข่าวwebจีน', link: 'https://docs.google.com/spreadsheets/d/1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8/edit?gid=0#gid=0' }
+];
+const HOROSCOPE_SOURCES = [
+    { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'ทั้งหมด', cell: 'P2', displayName: 'รูปinfo', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=0#gid=0' },
+    { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'รีวิวดูดวง', cell: 'L2', displayName: 'รูปรีวิวดูดวง', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=232046644#gid=232046644' },
+    { id: '1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE', sheetName: 'ทั้งหมด', cell: 'L2', displayName: 'คลิปทายใจดูดวง', link: 'https://docs.google.com/spreadsheets/d/1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE/edit?gid=0#gid=0' }
+];
+const OTHERS_SOURCES = [
+    { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'A2', displayName: 'งานรีวิวสินค้า (จำลอง)', link: '#' },
+    { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'B2', displayName: 'บทความสปอนเซอร์ (จำลอง)', link: '#' },
+    { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'C2', displayName: 'งานจิปาถะ (จำลอง)', link: '#' }
+];
+
+const BUILTIN_TABS = [
+    { id: 'overview', name: 'Dashboard', emoji: '📊', type: 'overview' },
+    { id: 'todo', name: 'Todo List', emoji: '✅', type: 'todo' },
+    { id: 'stockcheck', name: 'ตรวจ Stock', emoji: '🔍', type: 'stockcheck' },
+    { id: 'main', name: 'บทความ / โพสต์', emoji: '📝', type: 'sheets' },
+    { id: 'youtube', name: 'Youtube', emoji: '🎬', type: 'sheets' },
+    { id: 'yok', name: 'หยก', emoji: '💎', type: 'sheets' },
+    { id: 'ai', name: 'AI', emoji: '🤖', type: 'sheets' },
+    { id: 'horoscope', name: 'ดูดวง', emoji: '⭐', type: 'sheets' },
+    { id: 'others', name: 'อื่นๆ', emoji: '📂', type: 'sheets' }
+];
+
+let chartInstance = null;
+let currentTab = 'overview';
+let sheetsData = { main: null, youtube: null, yok: null, ai: null, horoscope: null, others: null };
+let customTabs = JSON.parse(localStorage.getItem('custom_tabs') || '[]');
+let customBoxes = JSON.parse(localStorage.getItem('custom_boxes') || '{}');
+let todoItems = JSON.parse(localStorage.getItem('todo_items') || '[]');
+let pageNotes = JSON.parse(localStorage.getItem('page_notes') || '{}');
+let selectedBoxColor = 'indigo';
+let editBoxColor = 'indigo';
+let editingBoxIndex = -1;
+let editingTabId = '';
+let isDark = localStorage.getItem('dark_mode') === 'true';
+let dragSrcIndex = null;
+
+const EMOJIS = ['📁','📂','📊','📈','📉','📋','📌','📍','✏️','✅','❌','⭐','🌟','💡','🔥','💎','🎯','🎬','🎨','🎵','🎮','🏆','🏅','🎖️','💰','💵','💳','🛒','🛍️','📱','💻','🖥️','🌐','🔗','🔒','🔑','🔔','📣','💬','💭','❤️','🧡','💛','💚','💙','💜','🖤','🤍','📦','📮','✈️','🚀','⚡','🌈','☀️','🌙','🍀','🌸','🎄','🎁','🎉','🎊','🏠','🏢','🏥','🏫','⏰','📅','🗓️','📝','📰','🗞️','🧾','🔍','🔎','🧩','🎲','♟️','🎯','🏁'];
+
+// ===========================
+// INIT
+// ===========================
+window.onload = () => {
+    applyTheme();
+    populateEmojiPickers();
+    const apiKey = localStorage.getItem('google_api_key');
+    if (apiKey) { renderTabs(); switchTab('overview'); }
+    else { showSection('login-section'); }
+};
+
+// ===========================
+// THEME
+// ===========================
+function toggleDarkMode() { isDark = !isDark; localStorage.setItem('dark_mode', isDark); applyTheme(); }
+function applyTheme() {
+    document.body.classList.remove('light','dark');
+    document.body.classList.add(isDark ? 'dark' : 'light');
+    document.getElementById('dark-mode-icon').className = isDark ? 'fa-solid fa-sun text-lg text-yellow-300' : 'fa-solid fa-moon text-lg';
+}
+
+// ===========================
+// SECTIONS
+// ===========================
+function showSection(id) { ['login-section','loading-section','dashboard-section'].forEach(s => document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+function saveApiKey() { const v = document.getElementById('api-key-input').value.trim(); if (!v){alert('กรุณากรอก API Key');return;} localStorage.setItem('google_api_key',v); renderTabs(); switchTab('overview'); }
+function logout() { localStorage.removeItem('google_api_key'); document.getElementById('api-key-input').value=''; showSection('login-section'); }
+function updateLoadingText(t,s='') { document.getElementById('loading-text').innerText=t; document.getElementById('loading-subtext').innerText=s; }
+
+// ===========================
+// MODALS & EMOJI
+// ===========================
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function populateEmojiPickers() {
+    ['new-tab-emoji-picker','new-box-emoji-picker','edit-box-emoji-picker'].forEach(pid => {
+        document.getElementById(pid).innerHTML = EMOJIS.map(e => `<button onclick="pickEmoji('${pid}','${e}')">${e}</button>`).join('');
+    });
+}
+function pickEmoji(pid, emoji) {
+    const map = { 'new-tab-emoji-picker': ['new-tab-emoji-input','new-tab-emoji-preview'], 'new-box-emoji-picker': ['new-box-emoji-input','new-box-emoji-preview'], 'edit-box-emoji-picker': ['edit-box-emoji-input','edit-box-emoji-preview'] };
+    const [inp, prev] = map[pid]; document.getElementById(inp).value = emoji; document.getElementById(prev).innerText = emoji; document.getElementById(pid).classList.add('hidden');
+}
+function selectBoxColor(c) { selectedBoxColor=c; document.querySelectorAll('.box-color-btn').forEach(b=>{b.style.boxShadow=b.dataset.color===c?'0 0 0 3px rgba(99,102,241,0.5)':''; }); }
+function selectEditBoxColor(c) { editBoxColor=c; document.querySelectorAll('.edit-box-color-btn').forEach(b=>{b.style.boxShadow=b.dataset.color===c?'0 0 0 3px rgba(99,102,241,0.5)':''; }); }
+
+// ===========================
+// EXPORT / IMPORT
+// ===========================
+function exportAllData() {
+    const data = { custom_tabs: customTabs, custom_boxes: customBoxes, todo_items: todoItems, page_notes: pageNotes, exported_at: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `dashboard-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
+}
+function importAllData(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.custom_tabs) { customTabs = data.custom_tabs; localStorage.setItem('custom_tabs', JSON.stringify(customTabs)); }
+            if (data.custom_boxes) { customBoxes = data.custom_boxes; localStorage.setItem('custom_boxes', JSON.stringify(customBoxes)); }
+            if (data.todo_items) { todoItems = data.todo_items; localStorage.setItem('todo_items', JSON.stringify(todoItems)); }
+            if (data.page_notes) { pageNotes = data.page_notes; localStorage.setItem('page_notes', JSON.stringify(pageNotes)); }
+            alert('Import สำเร็จ!');
+            renderTabs(); switchTab(currentTab);
+        } catch(err) { alert('ไฟล์ไม่ถูกต้อง: ' + err.message); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// ===========================
+// NOTES (per page)
+// ===========================
+function getNote(tabId) { return pageNotes[tabId] || ''; }
+function saveNote(tabId) {
+    const el = document.getElementById('note-textarea-' + tabId);
+    if (el) { pageNotes[tabId] = el.value; localStorage.setItem('page_notes', JSON.stringify(pageNotes)); }
+}
+function renderNoteBox(tabId) {
+    const note = getNote(tabId);
+    const isCollapsed = !note;
+    return `
+    <div class="card-bg rounded-2xl shadow-sm border border-subtle mb-6">
+        <button onclick="document.getElementById('note-body-${tabId}').classList.toggle('hidden');document.getElementById('note-arrow-${tabId}').classList.toggle('rotate-180')" class="w-full flex items-center justify-between p-4 hover-bg rounded-2xl transition-colors">
+            <span class="text-sm font-semibold text-main flex items-center gap-2"><i class="fa-solid fa-sticky-note text-amber-500"></i> โน้ตของหน้านี้</span>
+            <i id="note-arrow-${tabId}" class="fa-solid fa-chevron-down text-sub text-xs transition-transform ${isCollapsed ? '' : 'rotate-180'}"></i>
+        </button>
+        <div id="note-body-${tabId}" class="${isCollapsed ? 'hidden' : ''} px-4 pb-4">
+            <textarea id="note-textarea-${tabId}" class="w-full px-3 py-2 rounded-lg input-bg text-sm note-textarea focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เขียนโน้ตที่นี่... (บันทึกอัตโนมัติ)" oninput="saveNote('${tabId}')">${note}</textarea>
+        </div>
+    </div>`;
+}
+
+// ===========================
+// TABS
+// ===========================
+function getAllTabs() { return [...BUILTIN_TABS, ...customTabs]; }
+function renderTabs() {
+    const bar = document.getElementById('tabs-bar');
+    bar.innerHTML = getAllTabs().map(t => {
+        const isActive = currentTab === t.id;
+        return `<button onclick="switchTab('${t.id}')" class="px-4 py-3 font-medium border-b-2 transition-colors flex items-center whitespace-nowrap gap-1.5 text-sm ${isActive?'tab-active font-semibold':'tab-inactive border-transparent hover:border-gray-300'}">${t.emoji} ${t.name}</button>`;
+    }).join('') + `<button onclick="openModal('modal-create-tab')" class="px-4 py-3 text-sub hover:text-indigo-500 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap gap-1 text-sm"><i class="fa-solid fa-plus"></i> เพิ่ม Tab</button>`;
+}
+function switchTab(tabId) {
+    currentTab = tabId; renderTabs();
+    if (!localStorage.getItem('google_api_key')) { showSection('login-section'); return; }
+    const tab = getAllTabs().find(t=>t.id===tabId); if(!tab)return;
+    showSection('dashboard-section');
+    if (tab.type==='overview') renderOverviewPage();
+    else if (tab.type==='todo') renderTodoPage();
+    else if (tab.type==='stockcheck') renderStockCheckPage();
+    else if (tab.type==='sheets') { if(sheetsData[tabId]) renderSheetsPage(tabId); else fetchData(tabId); }
+    else if (tab.type==='custom') renderCustomTabPage(tabId);
+}
+function createCustomTab() {
+    const name = document.getElementById('new-tab-name').value.trim(); if(!name){alert('กรุณาใส่ชื่อ');return;}
+    const emoji = document.getElementById('new-tab-emoji-input').value.trim()||'📁';
+    const id = 'custom_'+Date.now();
+    customTabs.push({id,name,emoji,type:'custom'}); if(!customBoxes[id])customBoxes[id]=[];
+    localStorage.setItem('custom_tabs',JSON.stringify(customTabs)); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));
+    document.getElementById('new-tab-name').value=''; document.getElementById('new-tab-emoji-input').value=''; document.getElementById('new-tab-emoji-preview').innerText='📁';
+    closeModal('modal-create-tab'); switchTab(id);
+}
+function deleteCustomTab(tabId) { if(!confirm('ลบ Tab นี้?'))return; customTabs=customTabs.filter(t=>t.id!==tabId); delete customBoxes[tabId]; delete pageNotes[tabId]; localStorage.setItem('custom_tabs',JSON.stringify(customTabs)); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); localStorage.setItem('page_notes',JSON.stringify(pageNotes)); switchTab('overview'); }
+
+// ===========================
+// CUSTOM BOXES (works on ALL pages)
+// ===========================
+function createCustomBox() {
+    const name = document.getElementById('new-box-name').value.trim(); if(!name){alert('กรุณาใส่ชื่อ');return;}
+    const emoji = document.getElementById('new-box-emoji-input').value.trim()||'📦';
+    const box = { name, emoji, sheetId: document.getElementById('new-box-sheet-id').value.trim(), sheetName: document.getElementById('new-box-sheet-name').value.trim(), cell: document.getElementById('new-box-cell').value.trim(), link: document.getElementById('new-box-link').value.trim(), color: selectedBoxColor, value: null };
+    if(!customBoxes[currentTab])customBoxes[currentTab]=[];
+    customBoxes[currentTab].push(box);
+    localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));
+    ['new-box-name','new-box-sheet-id','new-box-sheet-name','new-box-cell','new-box-link'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('new-box-emoji-input').value=''; document.getElementById('new-box-emoji-preview').innerText='📦';
+    closeModal('modal-create-box');
+    switchTab(currentTab); // re-render current page
+}
+function openEditBox(tabId, index) {
+    editingTabId=tabId; editingBoxIndex=index;
+    const box = customBoxes[tabId][index];
+    document.getElementById('edit-box-name').value=box.name; document.getElementById('edit-box-emoji-input').value=box.emoji; document.getElementById('edit-box-emoji-preview').innerText=box.emoji;
+    document.getElementById('edit-box-sheet-id').value=box.sheetId||''; document.getElementById('edit-box-sheet-name').value=box.sheetName||'';
+    document.getElementById('edit-box-cell').value=box.cell||''; document.getElementById('edit-box-link').value=box.link||'';
+    selectEditBoxColor(box.color||'indigo'); openModal('modal-edit-box');
+}
+function saveEditBox() {
+    const box=customBoxes[editingTabId][editingBoxIndex];
+    box.name=document.getElementById('edit-box-name').value.trim()||box.name; box.emoji=document.getElementById('edit-box-emoji-input').value.trim()||box.emoji;
+    box.sheetId=document.getElementById('edit-box-sheet-id').value.trim(); box.sheetName=document.getElementById('edit-box-sheet-name').value.trim();
+    box.cell=document.getElementById('edit-box-cell').value.trim(); box.link=document.getElementById('edit-box-link').value.trim();
+    box.color=editBoxColor; box.value=null;
+    localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); closeModal('modal-edit-box'); switchTab(currentTab);
+}
+function deleteEditBox() { if(!confirm('ลบกล่องนี้?'))return; customBoxes[editingTabId].splice(editingBoxIndex,1); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); closeModal('modal-edit-box'); switchTab(currentTab); }
+function deleteBoxDirect(tabId, idx) { if(!confirm('ลบกล่องนี้?'))return; customBoxes[tabId].splice(idx,1); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); switchTab(currentTab); }
+
+// ===========================
+// DRAG & DROP for custom boxes
+// ===========================
+function setupDragAndDrop(tabId) {
+    const container = document.getElementById('custom-boxes-grid');
+    if (!container) return;
+    const items = container.querySelectorAll('.draggable-box');
+    items.forEach((item, idx) => {
+        item.setAttribute('draggable', 'true');
+        item.addEventListener('dragstart', e => { dragSrcIndex = idx; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+        item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over')); });
+        item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; item.classList.add('drag-over'); });
+        item.addEventListener('dragleave', () => { item.classList.remove('drag-over'); });
+        item.addEventListener('drop', e => {
+            e.preventDefault(); item.classList.remove('drag-over');
+            if (dragSrcIndex === null || dragSrcIndex === idx) return;
+            const boxes = customBoxes[tabId]; if(!boxes)return;
+            const moved = boxes.splice(dragSrcIndex, 1)[0];
+            boxes.splice(idx, 0, moved);
+            localStorage.setItem('custom_boxes', JSON.stringify(customBoxes));
+            dragSrcIndex = null;
+            renderCustomBoxesOnly(tabId);
+        });
+    });
+}
+
+// Fetch box values
+async function fetchCustomBoxValues(tabId) {
+    const apiKey = localStorage.getItem('google_api_key');
+    const boxes = customBoxes[tabId]||[];
+    await Promise.all(boxes.map(async box => {
+        if(!box.sheetId||!box.sheetName||!box.cell){box.value='-';return;}
+        try {
+            const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${box.sheetId}/values/${encodeURIComponent(box.sheetName+'!'+box.cell)}?key=${apiKey}`);
+            if(!r.ok){box.value='Error';return;}
+            const d = await r.json();
+            box.value = (d.values&&d.values[0]&&d.values[0][0]) ? d.values[0][0] : '0';
+        } catch { box.value='Error'; }
+    }));
+    localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));
+}
+
+// Render custom boxes HTML (reusable for any page)
+function renderCustomBoxesHTML(tabId) {
+    const boxes = customBoxes[tabId]||[];
+    if(boxes.length===0) return '';
+    return `
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-sub flex items-center gap-2"><i class="fa-solid fa-box text-indigo-500"></i> กล่องติดตามงานที่เพิ่มเอง <span class="text-xs font-normal">(ลากเพื่อจัดลำดับ)</span></h3>
+        </div>
+        <div id="custom-boxes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${boxes.map((box,idx) => {
+                const c=box.color||'indigo'; const val=box.value!==null?box.value:'...';
+                return `
+                <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden border-l-4 border-l-${c}-500 draggable-box group" data-idx="${idx}">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-2xl flex-shrink-0">${box.emoji}</span>
+                            <h4 class="font-bold text-main truncate text-sm">${box.name}</h4>
+                        </div>
+                        <div class="flex gap-1.5">
+                            <button onclick="event.stopPropagation();openEditBox('${tabId}',${idx})" class="text-sub hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" title="แก้ไข"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="event.stopPropagation();deleteBoxDirect('${tabId}',${idx})" class="text-sub hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="ลบ"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-${c}-500 mb-2">${val}</div>
+                    ${box.link ? `<a href="${box.link}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-1 font-medium">เปิดลิงก์ <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px"></i></a>` : ''}
+                    <div class="absolute top-2 right-12 text-sub cursor-grab opacity-0 group-hover:opacity-60"><i class="fa-solid fa-grip-vertical text-xs"></i></div>
+                </div>`;
+            }).join('')}
+        </div>
+    </div>`;
+}
+function renderCustomBoxesOnly(tabId) {
+    const container = document.getElementById('custom-boxes-section');
+    if(container) { container.innerHTML = renderCustomBoxesHTML(tabId); setupDragAndDrop(tabId); }
+}
+
+// ===========================
+// FETCH DATA
+// ===========================
+async function fetchData(tab=currentTab, forceRefresh=false) {
+    const apiKey = localStorage.getItem('google_api_key'); showSection('loading-section');
+    try {
+        if (['ai','horoscope','others'].includes(tab)) {
+            const labels={ai:'งาน AI',horoscope:'ดูดวง',others:'งานอื่นๆ'}; updateLoadingText(`กำลังดาวน์โหลดข้อมูล${labels[tab]}...`);
+            let sources = tab==='ai'?AI_SOURCES:tab==='horoscope'?HOROSCOPE_SOURCES:OTHERS_SOURCES;
+            let tabData=[];
+            const results = await Promise.all(sources.map(src => {
+                if(src.id==='MOCK_ID') return Promise.resolve({source:src,data:{values:[[Math.floor(Math.random()*50)+5]]}});
+                return fetch(`https://sheets.googleapis.com/v4/spreadsheets/${src.id}/values/${encodeURIComponent(src.sheetName+'!'+src.cell)}?key=${apiKey}`)
+                    .then(r=>{if(!r.ok)throw new Error(`ไม่สามารถดึง ${src.displayName}`);return r.json();}).then(d=>({source:src,data:d}));
+            }));
+            results.forEach(r=>{let v=0;if(r.data.values&&r.data.values[0]&&r.data.values[0][0])v=parseInt(r.data.values[0][0].toString().replace(/,/g,''),10)||0;tabData.push({title:r.source.displayName,readyCount:v,waitingCount:0,link:r.source.link});});
+            sheetsData[tab]=tabData; renderSheetsPage(tab); showSection('dashboard-section'); return;
+        }
+        const sheetLabels={main:'บทความ / โพสต์',youtube:'Youtube',yok:'หยก'}; updateLoadingText(`กำลังตรวจสอบชีท (${sheetLabels[tab]})...`);
+        const sheetId=SPREADSHEETS[tab]; const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`);
+        if(!meta.ok)throw new Error(`API Error: ${meta.status}`); const metaData=await meta.json();
+        let names=metaData.sheets.map(s=>s.properties.title);
+        if(tab==='yok')names=names.filter(n=>n.includes('ClickBait')||n.toLowerCase().includes('info'));
+        let tabData=[]; const chunk=15;
+        for(let i=0;i<names.length;i+=chunk){
+            const ch=names.slice(i,i+chunk); updateLoadingText(`ดาวน์โหลดชุดที่ ${Math.floor(i/chunk)+1}/${Math.ceil(names.length/chunk)}...`,`ชีท ${i+1}-${Math.min(i+chunk,names.length)}`);
+            const ranges=ch.map(n=>{if(tab==='main')return `ranges=${encodeURIComponent(n+'!F:F')}&ranges=${encodeURIComponent(n+'!K2')}`;if(tab==='youtube')return `ranges=${encodeURIComponent(n+'!P2')}`;if(tab==='yok'){const c=n.includes('ClickBait')?'H2':'M2';return `ranges=${encodeURIComponent(n+'!'+c)}`;}}).join('&');
+            const bResp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?${ranges}&key=${apiKey}`);
+            if(!bResp.ok)throw new Error(`Batch Error: ${bResp.status}`); const bData=await bResp.json();
+            for(let j=0;j<ch.length;j++){let ready=0,waiting=0;
+                if(tab==='main'){const colF=bData.valueRanges[j*2].values||[];const colK=bData.valueRanges[j*2+1].values||[];colF.forEach(r=>{if(r[0]&&r[0].toString().trim().toUpperCase()==='N')waiting++;});if(colK[0]&&colK[0][0])ready=parseInt(colK[0][0].toString().replace(/,/g,''),10)||0;}
+                else{const d=bData.valueRanges[j].values||[];if(d[0]&&d[0][0])ready=parseInt(d[0][0].toString().replace(/,/g,''),10)||0;}
+                tabData.push({title:ch[j],readyCount:ready,waitingCount:waiting,sheetId});
+            }
+        }
+        sheetsData[tab]=tabData; renderSheetsPage(tab); showSection('dashboard-section');
+    } catch(e){ console.error(e); alert(`เกิดข้อผิดพลาด: ${e.message}`); showSection('login-section'); }
+}
+
+async function loadAllData() {
+    const apiKey=localStorage.getItem('google_api_key'); if(!apiKey)return;
+    await Promise.all(['main','youtube','yok','ai','horoscope'].map(async t=>{if(!sheetsData[t])try{await fetchDataSilent(t);}catch(e){console.error(e);}}));
+}
+async function fetchDataSilent(tab) {
+    const apiKey=localStorage.getItem('google_api_key');
+    if(['ai','horoscope','others'].includes(tab)){let sources=tab==='ai'?AI_SOURCES:tab==='horoscope'?HOROSCOPE_SOURCES:OTHERS_SOURCES;let tabData=[];
+        const results=await Promise.all(sources.map(src=>{if(src.id==='MOCK_ID')return Promise.resolve({source:src,data:{values:[[Math.floor(Math.random()*50)+5]]}});return fetch(`https://sheets.googleapis.com/v4/spreadsheets/${src.id}/values/${encodeURIComponent(src.sheetName+'!'+src.cell)}?key=${apiKey}`).then(r=>r.json()).then(d=>({source:src,data:d}));}));
+        results.forEach(r=>{let v=0;if(r.data.values&&r.data.values[0]&&r.data.values[0][0])v=parseInt(r.data.values[0][0].toString().replace(/,/g,''),10)||0;tabData.push({title:r.source.displayName,readyCount:v,waitingCount:0,link:r.source.link});});
+        sheetsData[tab]=tabData;return;}
+    const sheetId=SPREADSHEETS[tab];const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`);if(!meta.ok)return;const metaData=await meta.json();
+    let names=metaData.sheets.map(s=>s.properties.title);if(tab==='yok')names=names.filter(n=>n.includes('ClickBait')||n.toLowerCase().includes('info'));
+    let tabData=[];const chunk=15;
+    for(let i=0;i<names.length;i+=chunk){const ch=names.slice(i,i+chunk);
+        const ranges=ch.map(n=>{if(tab==='main')return `ranges=${encodeURIComponent(n+'!F:F')}&ranges=${encodeURIComponent(n+'!K2')}`;if(tab==='youtube')return `ranges=${encodeURIComponent(n+'!P2')}`;if(tab==='yok'){const c=n.includes('ClickBait')?'H2':'M2';return `ranges=${encodeURIComponent(n+'!'+c)}`;}}).join('&');
+        const bResp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?${ranges}&key=${apiKey}`);if(!bResp.ok)continue;const bData=await bResp.json();
+        for(let j=0;j<ch.length;j++){let ready=0,waiting=0;if(tab==='main'){const colF=bData.valueRanges[j*2].values||[];const colK=bData.valueRanges[j*2+1].values||[];colF.forEach(r=>{if(r[0]&&r[0].toString().trim().toUpperCase()==='N')waiting++;});if(colK[0]&&colK[0][0])ready=parseInt(colK[0][0].toString().replace(/,/g,''),10)||0;}else{const d=bData.valueRanges[j].values||[];if(d[0]&&d[0][0])ready=parseInt(d[0][0].toString().replace(/,/g,''),10)||0;}tabData.push({title:ch[j],readyCount:ready,waitingCount:waiting,sheetId});}
+    }
+    sheetsData[tab]=tabData;
+}
+
+// ===========================
+// RENDER: OVERVIEW
+// ===========================
+async function renderOverviewPage() {
+    const content=document.getElementById('tab-content');
+    content.innerHTML=`<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent mb-3"></div><p class="text-sub">กำลังโหลดข้อมูลภาพรวม...</p></div>`;
+    await loadAllData();
+    const tabs=['main','youtube','yok','ai','horoscope'];
+    const tabNames={main:'📝 บทความ/โพสต์',youtube:'🎬 Youtube',yok:'💎 หยก',ai:'🤖 AI',horoscope:'⭐ ดูดวง'};
+    const tabColors={main:'indigo',youtube:'red',yok:'emerald',ai:'purple',horoscope:'pink'};
+    let totalStock=0,totalWaiting=0;let tabSummaries=[];
+    tabs.forEach(t=>{const d=sheetsData[t];if(!d)return;const ready=d.reduce((s,i)=>s+i.readyCount,0);const waiting=d.reduce((s,i)=>s+i.waitingCount,0);totalStock+=ready;totalWaiting+=waiting;tabSummaries.push({id:t,name:tabNames[t],color:tabColors[t],ready,waiting,count:d.length});});
+    let lowStockItems=[];tabs.forEach(t=>{const d=sheetsData[t];if(!d)return;d.forEach(item=>{if(item.readyCount<=3)lowStockItems.push({...item,tab:t,tabName:tabNames[t]});});});lowStockItems.sort((a,b)=>a.readyCount-b.readyCount);
+    const todoCount=todoItems.filter(t=>!t.done).length;const todoDone=todoItems.filter(t=>t.done).length;
+    // Also fetch custom boxes for overview
+    if(customBoxes['overview']) await fetchCustomBoxValues('overview');
+
+    content.innerHTML=`
+    <div class="fade-in">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <h1 class="text-2xl font-bold text-gray-800" id="dashboard-title">ภาพรวมสต็อกคอนเทนต์</h1>
-            <button onclick="fetchData(currentTab, true)" class="bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow border border-gray-200 transition-colors flex items-center gap-2">
-                <i class="fa-solid fa-rotate-right"></i> อัปเดตข้อมูล
-            </button>
-        </div>
-
-        <div id="summary-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 transition-all">
-            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex items-center gap-4 border-l-4 border-l-emerald-500">
-                <div class="bg-emerald-100 p-4 rounded-xl text-emerald-600 text-2xl">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500 font-medium" id="summary-ready-label">รวม Stock พร้อมโพสต์ทั้งหมด</p>
-                    <h2 class="text-3xl font-bold text-gray-800" id="total-ready">0</h2>
-                </div>
-            </div>
-            
-            <div id="waiting-summary-box" class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex items-center gap-4 border-l-4 border-l-amber-500">
-                <div class="bg-amber-100 p-4 rounded-xl text-amber-600 text-2xl">
-                    <i class="fa-solid fa-hourglass-half"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500 font-medium">รวม Stock ค้างรอสร้างทั้งหมด</p>
-                    <h2 class="text-3xl font-bold text-gray-800" id="total-waiting">0</h2>
-                </div>
+            <h1 class="text-2xl font-bold text-main">📊 Dashboard ภาพรวม</h1>
+            <div class="flex gap-2">
+                <button onclick="openModal('modal-create-box')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
+                <button onclick="sheetsData={main:null,youtube:null,yok:null,ai:null,horoscope:null,others:null};renderOverviewPage()" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button>
+        
             </div>
         </div>
+        ${renderNoteBox('overview')}
+        <div id="custom-boxes-section">${renderCustomBoxesHTML('overview')}</div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-indigo-500"><p class="text-sub text-xs font-medium">Stock ทั้งหมด</p><h2 class="text-3xl font-bold text-main mt-1">${totalStock.toLocaleString()}</h2></div>
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-amber-500"><p class="text-sub text-xs font-medium">รอสร้างทั้งหมด</p><h2 class="text-3xl font-bold text-main mt-1">${totalWaiting.toLocaleString()}</h2></div>
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-red-500"><p class="text-sub text-xs font-medium">Stock ต่ำ (≤3)</p><h2 class="text-3xl font-bold text-main mt-1">${lowStockItems.length}</h2></div>
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-emerald-500"><p class="text-sub text-xs font-medium">Todo ที่เหลือ</p><h2 class="text-3xl font-bold text-main mt-1">${todoCount} <span class="text-sm font-normal text-sub">/ ${todoCount+todoDone}</span></h2></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            ${tabSummaries.map(t=>`
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle cursor-pointer hover-bg transition-colors" onclick="switchTab('${t.id}')">
+                <div class="flex justify-between items-center mb-3"><h3 class="font-semibold text-main text-sm">${t.name}</h3><span class="text-xs text-sub">${t.count} รายการ</span></div>
+                <div class="flex items-end gap-4"><div><p class="text-xs text-sub">Stock</p><p class="text-2xl font-bold text-${t.color}-500">${t.ready.toLocaleString()}</p></div>${t.waiting>0?`<div><p class="text-xs text-sub">รอสร้าง</p><p class="text-lg font-bold text-amber-500">${t.waiting}</p></div>`:''}</div>
+                <div class="mt-3 w-full rounded-full h-2" style="background:${isDark?'#334155':'#e5e7eb'}"><div class="stock-bar bg-${t.color}-500" style="width:${Math.min(100,(t.ready/Math.max(t.ready+t.waiting,1))*100)}%"></div></div>
+            </div>`).join('')}
+        </div>
+        ${lowStockItems.length>0?`
+        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle border-l-4 border-l-red-500 mb-8">
+            <h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i> Stock ต่ำ - ควรเติมด่วน!</h2>
+            <div class="space-y-2 max-h-64 overflow-y-auto">${lowStockItems.slice(0,15).map(item=>`
+                <div class="flex items-center justify-between py-2 px-3 rounded-lg hover-bg transition-colors">
+                    <div class="flex items-center gap-3"><span class="inline-block w-2 h-2 rounded-full ${item.readyCount===0?'bg-red-500':'bg-amber-500'}"></span><span class="text-sm text-main font-medium">${item.title}</span><span class="text-xs text-sub">${item.tabName}</span></div>
+                    <span class="text-sm font-bold ${item.readyCount===0?'text-red-500':'text-amber-500'}">${item.readyCount} ชิ้น</span>
+                </div>`).join('')}</div>
+        </div>`:''}
+        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle"><h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-chart-bar text-indigo-500 mr-2"></i> Stock แยกตามหมวด</h2><div class="relative h-72 w-full"><canvas id="overviewChart"></canvas></div></div>
+    </div>`;
+    setupDragAndDrop('overview');
+    // Chart
+    const ctx=document.getElementById('overviewChart').getContext('2d');if(chartInstance)chartInstance.destroy();
+    const cMap={indigo:[79,70,229],red:[220,38,38],emerald:[16,185,129],purple:[168,85,247],pink:[236,72,153]};
+    chartInstance=new Chart(ctx,{type:'bar',data:{labels:tabSummaries.map(t=>t.name),datasets:[{label:'Stock',data:tabSummaries.map(t=>t.ready),backgroundColor:tabSummaries.map(t=>{const c=cMap[t.color];return `rgba(${c[0]},${c[1]},${c[2]},0.7)`;}),borderColor:tabSummaries.map(t=>{const c=cMap[t.color];return `rgb(${c[0]},${c[1]},${c[2]})`;}),borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:isDark?'#334155':'#f3f4f6'}},x:{grid:{display:false}}}}});
+}
 
-        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mb-8">
-            <h2 class="text-lg font-bold text-gray-800 mb-4"><i class="fa-solid fa-ranking-star text-yellow-500 mr-2"></i> Top 10 อันดับ Stock งานเยอะที่สุด</h2>
-            <div class="relative h-72 w-full">
-                <canvas id="topStockChart"></canvas>
+// ===========================
+// RENDER: STOCK CHECK
+// ===========================
+async function renderStockCheckPage() {
+    const content=document.getElementById('tab-content');
+    content.innerHTML=`<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent mb-3"></div><p class="text-sub">กำลังตรวจสอบ Stock...</p></div>`;
+    await loadAllData();
+    const tabs=['main','youtube','yok','ai','horoscope'];
+    const tabNames={main:'📝 บทความ/โพสต์',youtube:'🎬 Youtube',yok:'💎 หยก',ai:'🤖 AI',horoscope:'⭐ ดูดวง'};
+    let allItems=[];tabs.forEach(t=>{const d=sheetsData[t];if(!d)return;d.forEach(item=>allItems.push({...item,tab:t,tabName:tabNames[t]}));});
+    const zeroStock=allItems.filter(i=>i.readyCount===0);const lowStock=allItems.filter(i=>i.readyCount>0&&i.readyCount<=5);
+    const medStock=allItems.filter(i=>i.readyCount>5&&i.readyCount<=15);const highWaiting=allItems.filter(i=>i.waitingCount>5).sort((a,b)=>b.waitingCount-a.waitingCount);
+    const rg=(items,title,icon,cc,bc)=>{if(items.length===0)return '';return `
+        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle ${bc} mb-6"><h2 class="text-lg font-bold text-main mb-4"><i class="${icon} ${cc} mr-2"></i>${title} <span class="text-sm font-normal text-sub">(${items.length})</span></h2>
+        <div class="space-y-2 max-h-80 overflow-y-auto">${items.map(item=>{const url=item.link||`https://docs.google.com/spreadsheets/d/${item.sheetId}/edit`;return `
+            <div class="flex items-center justify-between py-2.5 px-4 rounded-lg hover-bg transition-colors border border-subtle"><div class="flex-1 min-w-0"><span class="text-sm text-main font-medium truncate block">${item.title}</span><span class="text-xs text-sub">${item.tabName}</span></div>
+            <div class="flex items-center gap-3 ml-3"><span class="text-sm font-bold ${item.readyCount===0?'text-red-500':item.readyCount<=5?'text-amber-500':'text-emerald-500'}">Stock: ${item.readyCount}</span>${item.waitingCount>0?`<span class="text-xs text-amber-500">รอ: ${item.waitingCount}</span>`:''}<a href="${url}" target="_blank" class="text-indigo-500 hover:text-indigo-700"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a></div></div>`;}).join('')}</div></div>`;};
+    content.innerHTML=`
+    <div class="fade-in">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div><h1 class="text-2xl font-bold text-main">🔍 ตรวจ Stock - ควรทำอะไรบ้าง?</h1><p class="text-sub text-sm mt-1">ตรวจสอบงานที่เหลือน้อย ควรเอามาทำต่อ</p></div>
+            <button onclick="renderStockCheckPage()" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button>
+        </div>
+        ${renderNoteBox('stockcheck')}
+        <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle text-center border-t-4 border-t-red-500"><p class="text-3xl font-bold text-red-500">${zeroStock.length}</p><p class="text-xs text-sub mt-1">หมด Stock</p></div>
+            <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle text-center border-t-4 border-t-amber-500"><p class="text-3xl font-bold text-amber-500">${lowStock.length}</p><p class="text-xs text-sub mt-1">Stock ต่ำ (1-5)</p></div>
+            <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle text-center border-t-4 border-t-sky-500"><p class="text-3xl font-bold text-sky-500">${medStock.length}</p><p class="text-xs text-sub mt-1">Stock ปานกลาง (6-15)</p></div>
+        </div>
+        ${rg(zeroStock,'หมด Stock แล้ว! ต้องทำด่วน','fa-solid fa-circle-exclamation','text-red-500','border-l-4 border-l-red-500')}
+        ${rg(lowStock,'Stock เหลือน้อย (1-5) ควรเตรียม','fa-solid fa-triangle-exclamation','text-amber-500','border-l-4 border-l-amber-500')}
+        ${rg(highWaiting,'ค้างรอสร้างเยอะ ควรเคลียร์','fa-solid fa-hourglass-half','text-orange-500','border-l-4 border-l-orange-500')}
+        ${rg(medStock,'Stock ปานกลาง (6-15) ยังพอไหว','fa-solid fa-info-circle','text-sky-500','border-l-4 border-l-sky-500')}
+    </div>`;
+}
+
+// ===========================
+// RENDER: TODO
+// ===========================
+function renderTodoPage() {
+    const content=document.getElementById('tab-content');const pending=todoItems.filter(t=>!t.done);const done=todoItems.filter(t=>t.done);
+    const pLabel={high:'🔴 ด่วน',medium:'🟡 ปานกลาง',low:'🟢 ทำได้เลย'};const pClass={high:'priority-high',medium:'priority-medium',low:'priority-low'};
+    content.innerHTML=`
+    <div class="fade-in">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"><h1 class="text-2xl font-bold text-main">✅ Todo List</h1><span class="text-sub text-sm">${pending.length} เหลือ / ${done.length} เสร็จ</span></div>
+        ${renderNoteBox('todo')}
+        <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle mb-6"><div class="flex gap-3 items-center flex-wrap">
+            <input id="todo-input" class="flex-1 min-w-[200px] px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เพิ่มสิ่งที่ต้องทำ..." onkeypress="if(event.key==='Enter')addTodo()">
+            <select id="todo-priority" class="px-3 py-2.5 rounded-lg input-bg text-sm"><option value="medium">🟡 ปานกลาง</option><option value="high">🔴 ด่วน</option><option value="low">🟢 ทำได้เลย</option></select>
+            <button onclick="addTodo()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-plus mr-1"></i>เพิ่ม</button>
+        </div></div>
+        <div class="space-y-2 mb-8">${pending.length===0?'<div class="text-center py-8 text-sub">ไม่มีงานค้าง 🎉</div>':''}
+            ${pending.map(t=>{const ri=todoItems.indexOf(t);return `
+            <div class="card-bg rounded-xl shadow-sm p-4 border border-subtle ${pClass[t.priority]} flex items-center gap-3 hover-bg transition-colors">
+                <button onclick="toggleTodo(${ri})" class="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-indigo-500 flex-shrink-0 transition-colors"></button>
+                <div class="flex-1 min-w-0"><p class="text-sm text-main font-medium">${t.text}</p><p class="text-xs text-sub mt-0.5">${pLabel[t.priority]} · ${t.date}</p></div>
+                <button onclick="deleteTodo(${ri})" class="text-sub hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>`;}).join('')}
+        </div>
+        ${done.length>0?`<div class="mb-4 flex items-center justify-between"><h3 class="text-sm font-semibold text-sub">เสร็จแล้ว (${done.length})</h3><button onclick="clearDoneTodos()" class="text-xs text-red-500 hover:text-red-700">ล้างทั้งหมด</button></div>
+        <div class="space-y-2 opacity-60">${done.map(t=>{const ri=todoItems.indexOf(t);return `
+            <div class="card-bg rounded-xl shadow-sm p-4 border border-subtle flex items-center gap-3">
+                <button onclick="toggleTodo(${ri})" class="w-6 h-6 rounded-full bg-indigo-500 flex-shrink-0 flex items-center justify-center text-white text-xs"><i class="fa-solid fa-check"></i></button>
+                <p class="text-sm text-sub line-through flex-1">${t.text}</p>
+                <button onclick="deleteTodo(${ri})" class="text-sub hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>`;}).join('')}</div>`:''}
+    </div>`;
+}
+function addTodo(){const input=document.getElementById('todo-input');const text=input.value.trim();if(!text)return;todoItems.push({text,priority:document.getElementById('todo-priority').value,done:false,date:new Date().toLocaleDateString('th-TH')});localStorage.setItem('todo_items',JSON.stringify(todoItems));input.value='';renderTodoPage();}
+function toggleTodo(i){todoItems[i].done=!todoItems[i].done;localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();}
+function deleteTodo(i){todoItems.splice(i,1);localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();}
+function clearDoneTodos(){todoItems=todoItems.filter(t=>!t.done);localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();}
+
+// ===========================
+// RENDER: SHEETS PAGE (with custom boxes + notes)
+// ===========================
+async function renderSheetsPage(tab) {
+    let data=sheetsData[tab]; if(!data)return;
+// คัดกรองกล่องที่ถูกผู้ใช้กดลบ (ซ่อน) ออกไป
+const hiddenCards = JSON.parse(localStorage.getItem('hidden_cards') || '{}');
+const hiddenList = hiddenCards[tab] || [];
+data = data.filter(sheet => !hiddenList.includes(sheet.title));
+    const titles={main:'ภาพรวมสต็อกบทความและโพสต์',youtube:'ภาพรวมสต็อกคลิป Youtube',yok:'ภาพรวมสต็อกงานหยก',ai:'ภาพรวมสต็อกคอนเทนต์ AI',horoscope:'ภาพรวมสต็อกคอนเทนต์ดูดวง',others:'ภาพรวมสต็อกงานอื่นๆ'};
+    const totalReady=data.reduce((s,i)=>s+i.readyCount,0);const totalWaiting=data.reduce((s,i)=>s+i.waitingCount,0);const showWaiting=tab==='main';
+    const colorMap={main:'indigo',youtube:'red',yok:'emerald',ai:'purple',horoscope:'pink',others:'slate'};const color=colorMap[tab]||'indigo';
+    const itemLabels={main:'พร้อมโพสต์',youtube:'คลิป',yok:'งาน',ai:'งาน AI',horoscope:'ดวง',others:'ชิ้นงาน'};const itemLabel=itemLabels[tab]||'งาน';
+    const sortedTop=[...data].sort((a,b)=>b.readyCount-a.readyCount).slice(0,10);
+
+    // Fetch custom boxes for this sheet tab
+    if(customBoxes[tab]) await fetchCustomBoxValues(tab);
+
+    const content=document.getElementById('tab-content');
+    content.innerHTML=`
+    <div class="fade-in">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h1 class="text-2xl font-bold text-main">${titles[tab]||tab}</h1>
+            <div class="flex gap-2">
+                <button onclick="openModal('modal-create-box')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
+                <button onclick="sheetsData['${tab}']=null;fetchData('${tab}',true)" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> อัปเดต</button>
             </div>
         </div>
 
-        <div class="mb-6 relative">
-            <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
-            <input type="text" id="search-input" onkeyup="filterCards()" placeholder="ค้นหาชื่องาน..." 
-                class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+        ${renderNoteBox(tab)}
+        <div id="custom-boxes-section">${renderCustomBoxesHTML(tab)}</div>
+
+        <div class="grid ${showWaiting?'grid-cols-1 md:grid-cols-2':'grid-cols-1'} gap-6 mb-8">
+            <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle flex items-center gap-4 border-l-4 border-l-emerald-500"><div class="bg-emerald-100 p-4 rounded-xl text-emerald-600 text-2xl"><i class="fa-solid fa-boxes-stacked"></i></div><div><p class="text-sm text-sub font-medium">${tab==='main'?'รวม Stock พร้อมโพสต์':'รวม Stock งาน'}ทั้งหมด</p><h2 class="text-3xl font-bold text-main">${totalReady.toLocaleString()}</h2></div></div>
+            ${showWaiting?`<div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle flex items-center gap-4 border-l-4 border-l-amber-500"><div class="bg-amber-100 p-4 rounded-xl text-amber-600 text-2xl"><i class="fa-solid fa-hourglass-half"></i></div><div><p class="text-sm text-sub font-medium">รวม Stock ค้างรอสร้างทั้งหมด</p><h2 class="text-3xl font-bold text-main">${totalWaiting.toLocaleString()}</h2></div></div>`:''}
         </div>
 
-        <div id="sheets-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle mb-8"><h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-ranking-star text-yellow-500 mr-2"></i> Top 10 Stock เยอะที่สุด</h2><div class="relative h-72 w-full"><canvas id="sheetChart"></canvas></div></div>
+
+        <div class="mb-6 relative"><i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i><input type="text" id="sheet-search" onkeyup="filterSheetCards()" placeholder="ค้นหาชื่องาน..." class="w-full pl-11 pr-4 py-3 rounded-xl input-bg shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"></div>
+
+        <div id="sheets-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>`;
+
+    setupDragAndDrop(tab);
+
+    // Chart
+    const ctx=document.getElementById('sheetChart').getContext('2d');if(chartInstance)chartInstance.destroy();
+    const cRGB={indigo:[79,70,229],red:[220,38,38],emerald:[16,185,129],purple:[168,85,247],pink:[236,72,153],slate:[100,116,139]};const c=cRGB[color]||cRGB.indigo;
+    chartInstance=new Chart(ctx,{type:'bar',data:{labels:sortedTop.map(i=>i.title),datasets:[{label:'จำนวน Stock',data:sortedTop.map(i=>i.readyCount),backgroundColor:sortedTop.map((_,i)=>`rgba(${c[0]},${c[1]},${c[2]},${i===0?0.8:0.4})`),borderColor:`rgb(${c[0]},${c[1]},${c[2]})`,borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} รายการ`}}},scales:{y:{beginAtZero:true,grid:{color:isDark?'#334155':'#f3f4f6'}},x:{grid:{display:false},ticks:{callback:function(v){const l=this.getLabelForValue(v);return l.length>15?l.substr(0,15)+'...':l;}}}}}});
+
+    // Cards
+    const grid=document.getElementById('sheets-cards-grid');
+    data.forEach(sheet=>{
+        const hasReady=sheet.readyCount>0;const hasWaiting=sheet.waitingCount>0;
+        const readyBadge=hasReady?`<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-check-circle mr-1"></i>มี Stock</span>`:`<span class="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full">ไม่มี Stock</span>`;
+        const waitingBadge=hasWaiting?`<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-clock mr-1"></i>รอสร้าง (${sheet.waitingCount})</span>`:`<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-thumbs-up mr-1"></i>สร้างครบ</span>`;
+        const waitingRow=tab==='main'?`<div class="flex justify-between items-center mt-3 pt-3 border-t border-subtle"><div><span class="text-sm text-sub">Stock รอสร้าง</span><br><span class="text-2xl font-bold text-amber-500">${sheet.waitingCount}</span></div><div class="text-right">${waitingBadge}</div></div>`:'';
+        const url=sheet.link||`https://docs.google.com/spreadsheets/d/${sheet.sheetId}/edit`;
+        grid.innerHTML+=`
+        <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group sheet-card">
+            ${hasReady?`<div class="absolute top-0 right-0 w-2 h-full bg-${color}-500"></div>`:''}
+            ${hasWaiting&&tab==='main'?`<div class="absolute top-0 right-0 w-2 h-full bg-amber-400"></div>`:''}
+            <div class="flex justify-between items-start mb-4">
+    <h3 class="font-bold text-lg text-main truncate sheet-title pr-4" title="${sheet.title}">${sheet.title}</h3>
+    <button onclick="event.stopPropagation(); deleteSheetCard('${tab}', \`${sheet.title}\`)" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="ลบกล่องนี้">
+        <i class="fa-solid fa-trash"></i>
+    </button>
+</div>
+            <div class="space-y-2"><div class="flex justify-between items-center"><div><span class="text-sm text-sub">จำนวน Stock ${itemLabel}</span><br><span class="text-2xl font-bold text-${color}-500">${sheet.readyCount}</span></div><div class="text-right">${readyBadge}</div></div>${waitingRow}</div>
+            <div class="mt-5 pt-3 border-t border-subtle"><a href="${url}" target="_blank" class="text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1 font-medium transition-colors">เปิดใน Google Sheets <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i></a></div>
+        </div>`;
+    });
+}
+function filterSheetCards(){const q=document.getElementById('sheet-search').value.toLowerCase();document.querySelectorAll('.sheet-card').forEach(card=>{card.style.display=card.querySelector('.sheet-title').innerText.toLowerCase().includes(q)?'block':'none';});}
+
+// ===========================
+// RENDER: CUSTOM TAB PAGE
+// ===========================
+async function renderCustomTabPage(tabId) {
+    const content=document.getElementById('tab-content');const tab=getAllTabs().find(t=>t.id===tabId);const boxes=customBoxes[tabId]||[];
+    content.innerHTML=`<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent mb-3"></div><p class="text-sub">กำลังโหลด...</p></div>`;
+    await fetchCustomBoxValues(tabId);
+    content.innerHTML=`
+    <div class="fade-in">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div><h1 class="text-2xl font-bold text-main">${tab?tab.emoji:''} ${tab?tab.name:tabId}</h1><p class="text-sub text-sm mt-1">กล่องติดตามงานที่กำหนดเอง</p></div>
+            <div class="flex gap-2">
+                <button onclick="openModal('modal-create-box')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
+                <button onclick="renderCustomTabPage('${tabId}')" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors"><i class="fa-solid fa-rotate-right"></i></button>
+                <button onclick="deleteCustomTab('${tabId}')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"><i class="fa-solid fa-trash"></i></button>
             </div>
-
-    </div>
-
-    <script>
-        // รหัสไฟล์ Google Sheets สำหรับงานทั่วไป
-        const SPREADSHEETS = {
-            main: '14jiUb5-96MY6rCIJTWkbcSBmbvCk_v8HdVRc589MjrU',
-            youtube: '1ZqTDnbals2n-dQA-6-GrvYtaWbBf3nDqEkkBtOwJn8A',
-            yok: '1BGCO3xKKeVmaRQiYmfPnYAhWSz-F3KDr5I89seA3I84'
-        };
-
-        // ตั้งค่าเฉพาะเจาะจงสำหรับงาน AI ที่มาจากหลายไฟล์และแผ่นงาน
-        const AI_SOURCES = [
-            { 
-                id: '1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME', 
-                sheetName: 'แนะนำเวป', 
-                cell: 'L2', 
-                displayName: 'คลิปแนะนำเวป',
-                link: 'https://docs.google.com/spreadsheets/d/1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME/edit'
-            },
-            { 
-                id: '1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME', 
-                sheetName: 'ทั้งหมด', 
-                cell: 'K2', 
-                displayName: 'คำคมAI',
-                link: 'https://docs.google.com/spreadsheets/d/1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME/edit#gid=1068625072'
-            },
-            { 
-                id: '1Rr0thsqzrLmTKcmAO_z4dKSZpE_5JexWSJxXn4Ot77U', 
-                sheetName: 'AI', 
-                cell: 'K2', 
-                displayName: 'รูปinfo',
-                link: 'https://docs.google.com/spreadsheets/d/1Rr0thsqzrLmTKcmAO_z4dKSZpE_5JexWSJxXn4Ot77U/edit#gid=1137134987'
-            },
-            { 
-                id: '1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg', 
-                sheetName: 'AI_Clickbait', 
-                cell: 'M2', 
-                displayName: 'รูปแดงClickbait',
-                link: 'https://docs.google.com/spreadsheets/d/1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg/edit?gid=1527366755#gid=1527366755'
-            },
-            { 
-                id: '1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8', 
-                sheetName: 'ข่าวเวปจีน', 
-                cell: 'S2', 
-                displayName: 'ข่าวwebจีน',
-                link: 'https://docs.google.com/spreadsheets/d/1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8/edit?gid=0#gid=0'
-            }
-        ];
-
-        // --------------------------------------------------------------------------------
-        // โครงสร้างสำหรับ Tab ดูดวง และ อื่นๆ (ใส่เป็นโครงไว้ให้คุณมาแก้ ID ใส่ทีหลัง)
-        // หมายเหตุ: หาก id ยังเป็น 'MOCK_ID' ระบบจะทำการสุ่มตัวเลขมาโชว์ให้ดูก่อนเพื่อไม่ให้ Error
-        // --------------------------------------------------------------------------------
-        const HOROSCOPE_SOURCES = [
-            { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'ทั้งหมด', cell: 'P2', displayName: 'รูปinfo', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=0#gid=0' },
-            { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'รีวิวดูดวง', cell: 'L2', displayName: 'รูปรีวิวดูดวง', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=232046644#gid=232046644' },
-            { id: '1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE', sheetName: 'ทั้งหมด', cell: 'L2', displayName: 'คลิปทายใจดูดวง', link: 'https://docs.google.com/spreadsheets/d/1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE/edit?gid=0#gid=0' }
-            
-        ];
-
-        const OTHERS_SOURCES = [
-            { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'A2', displayName: 'งานรีวิวสินค้า (จำลอง)', link: '#' },
-            { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'B2', displayName: 'บทความสปอนเซอร์ (จำลอง)', link: '#' },
-            { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'C2', displayName: 'งานจิปาถะ (จำลอง)', link: '#' }
-        ];
-        // --------------------------------------------------------------------------------
-
-        let chartInstance = null;
-        let currentTab = 'main';
-        // เก็บ Cache ข้อมูลเพื่อจะได้ไม่ต้องโหลดใหม่เวลาสลับ Tab
-        let sheetsData = {
-            main: null,
-            youtube: null,
-            yok: null,
-            ai: null,
-            horoscope: null,
-            others: null
-        };
-
-        // ฟังก์ชันเริ่มต้นเมื่อโหลดหน้าเว็บ
-        window.onload = () => {
-            const apiKey = localStorage.getItem('google_api_key');
-            if (apiKey) {
-                switchTab('main');
-            } else {
-                showSection('login-section');
-            }
-        }
-
-        // สลับการแสดงผลหน้าจอ
-        function showSection(sectionId) {
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('loading-section').classList.add('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
-            document.getElementById(sectionId).classList.remove('hidden');
-        }
-
-        // บันทึก API Key
-        function saveApiKey() {
-            const input = document.getElementById('api-key-input').value.trim();
-            if (!input) {
-                alert('กรุณากรอก API Key');
-                return;
-            }
-            localStorage.setItem('google_api_key', input);
-            fetchData(currentTab, true);
-        }
-
-        // ล้าง API Key
-        function logout() {
-            localStorage.removeItem('google_api_key');
-            document.getElementById('api-key-input').value = '';
-            showSection('login-section');
-        }
-
-        // อัปเดตข้อความโหลด
-        function updateLoadingText(text, subtext = '') {
-            document.getElementById('loading-text').innerText = text;
-            document.getElementById('loading-subtext').innerText = subtext;
-        }
-
-        // ฟังก์ชันเปลี่ยน Tab
-        function switchTab(tab) {
-            currentTab = tab;
-            const tabs = ['main', 'youtube', 'yok', 'ai', 'horoscope', 'others'];
-            
-            const activeClass = "px-6 py-3 font-semibold text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50 transition-colors flex items-center whitespace-nowrap";
-            const inactiveClass = "px-6 py-3 font-medium text-gray-500 hover:text-indigo-600 hover:bg-gray-50 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap";
-            
-            tabs.forEach(t => {
-                document.getElementById(`tab-${t}`).className = t === tab ? activeClass : inactiveClass;
-            });
-
-            const apiKey = localStorage.getItem('google_api_key');
-            if (!apiKey) {
-                showSection('login-section');
-                return;
-            }
-
-            if (sheetsData[tab]) {
-                renderDashboard();
-                showSection('dashboard-section');
-            } else {
-                fetchData(tab);
-            }
-        }
-
-        // ฟังก์ชันหลักดึงข้อมูล
-        async function fetchData(tab = currentTab, forceRefresh = false) {
-            const apiKey = localStorage.getItem('google_api_key');
-            showSection('loading-section');
-            
-            try {
-                // ============================================
-                // การดึงข้อมูลสำหรับ Tab ที่ใช้ Sources แบบแยกไฟล์ (AI, Horoscope, Others)
-                // ============================================
-                if (tab === 'ai' || tab === 'horoscope' || tab === 'others') {
-                    const sectionLabels = { ai: 'งาน AI', horoscope: 'ดูดวง', others: 'งานอื่นๆ' };
-                    updateLoadingText(`กำลังดาวน์โหลดข้อมูล${sectionLabels[tab]}...`);
-                    
-                    let tabData = [];
-                    let sources = [];
-                    
-                    if (tab === 'ai') sources = AI_SOURCES;
-                    else if (tab === 'horoscope') sources = HOROSCOPE_SOURCES;
-                    else if (tab === 'others') sources = OTHERS_SOURCES;
-                    
-                    const fetchPromises = sources.map(source => {
-                        // ระบบป้องกัน Error: ถ้ายังไม่ได้ใส่ ID ของจริง ให้ส่งค่าสุ่มกลับไปเลย
-                        if (source.id === 'MOCK_ID') {
-                            return Promise.resolve({
-                                source,
-                                data: { values: [[Math.floor(Math.random() * 50) + 5]] } // สุ่มเลขให้ดูเป็นตัวอย่าง 5-54
-                            });
-                        }
-
-                        // ถ้ามี ID จริง จะวิ่งเข้า API ตรงนี้
-                        const range = encodeURIComponent(`${source.sheetName}!${source.cell}`);
-                        const url = `https://sheets.googleapis.com/v4/spreadsheets/${source.id}/values/${range}?key=${apiKey}`;
-                        return fetch(url).then(res => {
-                            if (!res.ok) throw new Error(`ไม่สามารถดึงข้อมูล ${source.displayName} ได้`);
-                            return res.json();
-                        }).then(data => ({ source, data }));
-                    });
-
-                    const results = await Promise.all(fetchPromises);
-
-                    results.forEach(res => {
-                        let readyCount = 0;
-                        if (res.data.values && res.data.values.length > 0 && res.data.values[0].length > 0) {
-                            const val = parseInt(res.data.values[0][0].toString().replace(/,/g, ''), 10);
-                            readyCount = isNaN(val) ? 0 : val;
-                        }
-                        
-                        tabData.push({
-                            title: res.source.displayName,
-                            readyCount: readyCount,
-                            waitingCount: 0,
-                            link: res.source.link
-                        });
-                    });
-                    
-                    sheetsData[tab] = tabData;
-                    renderDashboard();
-                    showSection('dashboard-section');
-                    return; 
-                }
-
-                // ============================================
-                // การดึงข้อมูลปกติสำหรับ Tab อื่นๆ (Main, Youtube, Yok)
-                // ============================================
-                const sheetLabels = { main: 'บทความ / โพสต์', youtube: 'Youtube', yok: 'หยก' };
-                updateLoadingText(`กำลังตรวจสอบรายชื่อชีททั้งหมด (${sheetLabels[tab]})...`);
-                const sheetId = SPREADSHEETS[tab];
-                
-                const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`;
-                const metaResponse = await fetch(metaUrl);
-                
-                if (!metaResponse.ok) throw new Error(`API Error: ${metaResponse.status} ${metaResponse.statusText}`);
-                
-                const metaData = await metaResponse.json();
-                let sheetNames = metaData.sheets.map(sheet => sheet.properties.title);
-                
-                if (tab === 'yok') {
-                    sheetNames = sheetNames.filter(name => 
-                        name.includes('ClickBait') || name.toLowerCase().includes('info')
-                    );
-                }
-                
-                let tabData = [];
-                const chunkSize = 15; 
-
-                for (let i = 0; i < sheetNames.length; i += chunkSize) {
-                    const chunk = sheetNames.slice(i, i + chunkSize);
-                    updateLoadingText(`กำลังดาวน์โหลดข้อมูลชุดที่ ${Math.floor(i/chunkSize) + 1}/${Math.ceil(sheetNames.length/chunkSize)}...`, `ชีท ${i+1} ถึง ${Math.min(i+chunkSize, sheetNames.length)}`);
-                    
-                    const ranges = chunk.map(name => {
-                        if (tab === 'main') {
-                            return `ranges=${encodeURIComponent(name + '!F:F')}&ranges=${encodeURIComponent(name + '!K2')}`;
-                        } else if (tab === 'youtube') {
-                            return `ranges=${encodeURIComponent(name + '!P2')}`;
-                        } else if (tab === 'yok') {
-                            const targetCell = name.includes('ClickBait') ? 'H2' : 'M2';
-                            return `ranges=${encodeURIComponent(name + '!' + targetCell)}`;
-                        }
-                    }).join('&');
-
-                    const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?${ranges}&key=${apiKey}`;
-                    const batchResponse = await fetch(batchUrl);
-                    
-                    if (!batchResponse.ok) throw new Error(`Batch API Error: ${batchResponse.status}`);
-
-                    const batchData = await batchResponse.json();
-                    
-                    for (let j = 0; j < chunk.length; j++) {
-                        let readyCount = 0;
-                        let waitingCount = 0;
-
-                        if (tab === 'main') {
-                            const colFData = batchData.valueRanges[j * 2].values || [];
-                            const colK2Data = batchData.valueRanges[j * 2 + 1].values || [];
-
-                            colFData.forEach(row => {
-                                if (row[0] && row[0].toString().trim().toUpperCase() === 'N') waitingCount++;
-                            });
-
-                            if (colK2Data.length > 0 && colK2Data[0].length > 0) {
-                                const val = parseInt(colK2Data[0][0].toString().replace(/,/g, ''), 10);
-                                readyCount = isNaN(val) ? 0 : val;
-                            }
-                        } else if (tab === 'youtube' || tab === 'yok') {
-                            const colData = batchData.valueRanges[j].values || [];
-                            if (colData.length > 0 && colData[0].length > 0) {
-                                const val = parseInt(colData[0][0].toString().replace(/,/g, ''), 10);
-                                readyCount = isNaN(val) ? 0 : val;
-                            }
-                        }
-
-                        tabData.push({
-                            title: chunk[j],
-                            readyCount: readyCount,
-                            waitingCount: waitingCount,
-                            sheetId: sheetId
-                        });
-                    }
-                }
-
-                sheetsData[tab] = tabData;
-                renderDashboard();
-                showSection('dashboard-section');
-
-            } catch (error) {
-                console.error(error);
-                alert(`เกิดข้อผิดพลาดในการดึงข้อมูล: ${error.message}\n(ตรวจสอบ API Key หรือสิทธิ์การเข้าถึงไฟล์)`);
-                showSection('login-section');
-            }
-        }
-
-        // ฟังก์ชันสร้างหน้าตา Dashboard
-        function renderDashboard() {
-            const data = sheetsData[currentTab];
-            if (!data) return;
-
-            const summaryGrid = document.getElementById('summary-grid');
-            const waitingBox = document.getElementById('waiting-summary-box');
-            
-            const titles = {
-                main: 'ภาพรวมสต็อกบทความและโพสต์',
-                youtube: 'ภาพรวมสต็อกคลิป Youtube',
-                yok: 'ภาพรวมสต็อกงานหยก',
-                ai: 'ภาพรวมสต็อกคอนเทนต์ AI',
-                horoscope: 'ภาพรวมสต็อกคอนเทนต์ดูดวง',
-                others: 'ภาพรวมสต็อกงานอื่นๆ'
-            };
-            document.getElementById('dashboard-title').innerText = titles[currentTab];
-            
-            document.getElementById('summary-ready-label').innerText = currentTab === 'main' ? 'รวม Stock พร้อมโพสต์ทั้งหมด' : 'รวม Stock งานทั้งหมด';
-
-            // ซ่อนกล่อง "รอสร้าง" สำหรับ Tab อื่นที่ไม่ใช่ Main
-            if (['youtube', 'yok', 'ai', 'horoscope', 'others'].includes(currentTab)) {
-                summaryGrid.classList.remove('md:grid-cols-2');
-                summaryGrid.classList.add('md:grid-cols-1');
-                waitingBox.classList.add('hidden');
-                waitingBox.classList.remove('flex');
-            } else {
-                summaryGrid.classList.remove('md:grid-cols-1');
-                summaryGrid.classList.add('md:grid-cols-2');
-                waitingBox.classList.remove('hidden');
-                waitingBox.classList.add('flex');
-            }
-
-            const totalReady = data.reduce((sum, sheet) => sum + sheet.readyCount, 0);
-            const totalWaiting = data.reduce((sum, sheet) => sum + sheet.waitingCount, 0);
-            
-            document.getElementById('total-ready').innerText = totalReady.toLocaleString();
-            document.getElementById('total-waiting').innerText = totalWaiting.toLocaleString();
-
-            const sortedForChart = [...data].sort((a, b) => b.readyCount - a.readyCount).slice(0, 10);
-            renderChart(sortedForChart);
-            renderCards(data);
-        }
-
-        // ฟังก์ชันวาดกราฟ Top 10
-        function renderChart(data) {
-            const ctx = document.getElementById('topStockChart').getContext('2d');
-            
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            const labels = data.map(item => item.title);
-            const values = data.map(item => item.readyCount);
-            
-            // ตั้งค่าสีกราฟตาม Tab
-            let colorMain = [79, 70, 229]; // Indigo
-            if (currentTab === 'youtube') colorMain = [220, 38, 38]; // Red
-            else if (currentTab === 'yok') colorMain = [16, 185, 129]; // Emerald
-            else if (currentTab === 'ai') colorMain = [168, 85, 247]; // Purple
-            else if (currentTab === 'horoscope') colorMain = [236, 72, 153]; // Pink
-            else if (currentTab === 'others') colorMain = [100, 116, 139]; // Slate
-
-            const backgroundColors = values.map((val, index) => 
-                index === 0 ? `rgba(${colorMain[0]}, ${colorMain[1]}, ${colorMain[2]}, 0.8)` : `rgba(${colorMain[0]}, ${colorMain[1]}, ${colorMain[2]}, 0.4)`
-            );
-            const borderColors = values.map((val, index) => 
-                `rgb(${colorMain[0]}, ${colorMain[1]}, ${colorMain[2]})`
-            );
-
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'จำนวน Stock',
-                        data: values,
-                        backgroundColor: backgroundColors,
-                        borderColor: borderColors,
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { callbacks: { label: function(context) { return ` มีจำนวน: ${context.raw} รายการ`; } } }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#f3f4f6' } },
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                callback: function(value, index) {
-                                    const label = this.getLabelForValue(value);
-                                    return label.length > 15 ? label.substr(0, 15) + '...' : label;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // ฟังก์ชันสร้าง Card รายชีท
-        function renderCards(data) {
-            const grid = document.getElementById('sheets-grid');
-            grid.innerHTML = '';
-
-            if (data.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400">ไม่พบข้อมูล</div>`;
-                return;
-            }
-
-            data.forEach(sheet => {
-                const hasReady = sheet.readyCount > 0;
-                const hasWaiting = sheet.waitingCount > 0;
-
-                const readyBadge = hasReady 
-                    ? `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-check-circle mr-1"></i>มี Stock</span>`
-                    : `<span class="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full">ไม่มี Stock</span>`;
-
-                const waitingBadge = hasWaiting
-                    ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-clock mr-1"></i>รอสร้าง (${sheet.waitingCount})</span>`
-                    : `<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-thumbs-up mr-1"></i>สร้างครบแล้ว</span>`;
-
-                const waitingRowHtml = currentTab === 'main' ? `
-                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                        <div class="flex flex-col">
-                            <span class="text-sm text-gray-500">Stock รอสร้าง</span>
-                            <span class="text-2xl font-bold text-amber-500">${sheet.waitingCount}</span>
-                        </div>
-                        <div class="text-right">
-                            ${waitingBadge}
-                        </div>
+        </div>
+        ${renderNoteBox(tabId)}
+        ${boxes.length===0?`
+        <div class="text-center py-16"><div class="text-6xl mb-4">📦</div><h3 class="text-lg font-semibold text-main mb-2">ยังไม่มีกล่องติดตามงาน</h3><p class="text-sub text-sm mb-6">กดปุ่ม "เพิ่มกล่อง" เพื่อสร้างกล่องแรก</p>
+        <button onclick="openModal('modal-create-box')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-plus mr-2"></i>สร้างกล่องแรก</button></div>`:`
+        <div id="custom-boxes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${boxes.map((box,idx)=>{const c=box.color||'indigo';const val=box.value!==null?box.value:'...';return `
+            <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden border-l-4 border-l-${c}-500 draggable-box group" data-idx="${idx}">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2 min-w-0"><span class="text-2xl flex-shrink-0">${box.emoji}</span><h4 class="font-bold text-main truncate">${box.name}</h4></div>
+                    <div class="flex gap-1.5">
+                        <button onclick="event.stopPropagation();openEditBox('${tabId}',${idx})" class="text-sub hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" title="แก้ไข"><i class="fa-solid fa-pen text-xs"></i></button>
+                        <button onclick="event.stopPropagation();deleteBoxDirect('${tabId}',${idx})" class="text-sub hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="ลบ"><i class="fa-solid fa-trash text-xs"></i></button>
                     </div>
-                ` : '';
+                </div>
+                <div class="text-3xl font-bold text-${c}-500 mb-2">${val}</div>
+                ${box.link?`<a href="${box.link}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-1 font-medium">เปิดลิงก์ <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px"></i></a>`:''}
+                <div class="absolute top-2 right-12 text-sub cursor-grab opacity-0 group-hover:opacity-60"><i class="fa-solid fa-grip-vertical text-xs"></i></div>
+            </div>`;}).join('')}
+        </div>`}
+    </div>`;
+    setupDragAndDrop(tabId);
+}
 
-                // กำหนดประเภทและสีของแถบหน้าการ์ดตาม Tab
-                let itemLabel = 'พร้อมโพสต์';
-                let valueColorClass = 'text-emerald-600';
-                let indicatorColor = 'bg-emerald-400';
-                
-                if (currentTab === 'youtube') {
-                    itemLabel = 'คลิป'; valueColorClass = 'text-red-600'; indicatorColor = 'bg-red-500';
-                } else if (currentTab === 'yok') {
-                    itemLabel = 'งาน'; valueColorClass = 'text-emerald-600'; indicatorColor = 'bg-emerald-500';
-                } else if (currentTab === 'ai') {
-                    itemLabel = 'งาน AI'; valueColorClass = 'text-purple-600'; indicatorColor = 'bg-purple-500';
-                } else if (currentTab === 'horoscope') {
-                    itemLabel = 'ดวง'; valueColorClass = 'text-pink-600'; indicatorColor = 'bg-pink-500';
-                } else if (currentTab === 'others') {
-                    itemLabel = 'ชิ้นงาน'; valueColorClass = 'text-slate-600'; indicatorColor = 'bg-slate-500';
-                }
+function deleteSheetCard(tab, title) {
+    if(!confirm(`ต้องการลบกล่อง "${title}" ออกจากหน้าจอนี้ใช่หรือไม่?`)) return;
+    
+    // บันทึกชื่อกล่องที่ถูกลบลงใน localStorage
+    let hiddenCards = JSON.parse(localStorage.getItem('hidden_cards') || '{}');
+    if(!hiddenCards[tab]) hiddenCards[tab] = [];
+    hiddenCards[tab].push(title);
+    localStorage.setItem('hidden_cards', JSON.stringify(hiddenCards));
+    
+    // รีโหลดหน้าแท็บนั้นใหม่
+    renderSheetsPage(tab);
+}
 
-                const targetUrl = sheet.link ? sheet.link : `https://docs.google.com/spreadsheets/d/${sheet.sheetId}/edit#gid=0`;
-
-                const cardHtml = `
-                    <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group sheet-card">
-                        ${hasReady ? `<div class="absolute top-0 right-0 w-2 h-full ${indicatorColor}"></div>` : ''}
-                        ${hasWaiting && currentTab === 'main' ? `<div class="absolute top-0 right-0 w-2 h-full bg-amber-400"></div>` : ''}
-                        
-                        <h3 class="font-bold text-lg text-gray-800 mb-4 truncate sheet-title" title="${sheet.title}">
-                            ${sheet.title}
-                        </h3>
-                        
-                        <div class="space-y-2">
-                            <div class="flex justify-between items-center">
-                                <div class="flex flex-col">
-                                    <span class="text-sm text-gray-500">จำนวน Stock ${itemLabel}</span>
-                                    <span class="text-2xl font-bold ${valueColorClass}">${sheet.readyCount}</span>
-                                </div>
-                                <div class="text-right">
-                                    ${readyBadge}
-                                </div>
-                            </div>
-                            ${waitingRowHtml}
-                        </div>
-
-                        <div class="mt-5 pt-3 border-t border-gray-100">
-                            <a href="${targetUrl}" target="_blank" 
-                               class="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-medium transition-colors">
-                                เปิดใน Google Sheets <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                `;
-                grid.innerHTML += cardHtml;
-            });
-        }
-
-        // ฟังก์ชันค้นหาและกรองชีท
-        function filterCards() {
-            const searchText = document.getElementById('search-input').value.toLowerCase();
-            const cards = document.querySelectorAll('.sheet-card');
-            
-            cards.forEach(card => {
-                const title = card.querySelector('.sheet-title').innerText.toLowerCase();
-                if (title.includes(searchText)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-    </script>
+</script>
 </body>
 </html>
