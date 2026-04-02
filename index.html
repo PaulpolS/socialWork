@@ -3,83 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Production Dashboard</title>
+    <title>Sync Master Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Prompt', sans-serif; transition: background-color 0.3s, color 0.3s; }
-        body.light { background-color: #f3f4f6; color: #1f2937; }
-        body.dark { background-color: #0f172a; color: #e2e8f0; }
-        .glass-card { backdrop-filter: blur(10px); transition: background-color 0.3s, border-color 0.3s; }
-        .light .glass-card { background: rgba(255,255,255,0.95); border: 1px solid rgba(229,231,235,1); }
-        .dark .glass-card { background: rgba(30,41,59,0.95); border: 1px solid rgba(51,65,85,1); }
-        .light .card-bg { background: #fff; border-color: #f3f4f6; }
-        .dark .card-bg { background: #1e293b; border-color: #334155; }
-        .light .nav-bg { background: #4f46e5; }
-        .dark .nav-bg { background: #1e293b; }
-        .light .input-bg { background: #fff; border-color: #d1d5db; color: #1f2937; }
-        .dark .input-bg { background: #334155; border-color: #475569; color: #e2e8f0; }
-        .light .tab-active { color: #4f46e5; border-color: #4f46e5; background: rgba(79,70,229,0.05); }
-        .dark .tab-active { color: #818cf8; border-color: #818cf8; background: rgba(129,140,248,0.1); }
-        .light .tab-inactive { color: #6b7280; }
-        .dark .tab-inactive { color: #94a3b8; }
-        .light .text-main { color: #1f2937; }
-        .dark .text-main { color: #e2e8f0; }
-        .light .text-sub { color: #6b7280; }
-        .dark .text-sub { color: #94a3b8; }
-        .light .section-bg { background: #fff; }
-        .dark .section-bg { background: #1e293b; }
-        .light .border-subtle { border-color: #f3f4f6; }
-        .dark .border-subtle { border-color: #334155; }
-        .light .hover-bg:hover { background: #f9fafb; }
-        .dark .hover-bg:hover { background: #334155; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
-        .priority-high { border-left: 4px solid #ef4444; }
-        .priority-medium { border-left: 4px solid #f59e0b; }
-        .priority-low { border-left: 4px solid #22c55e; }
-        .emoji-picker { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; max-height: 200px; overflow-y: auto; }
-        .emoji-picker button { font-size: 1.3rem; padding: 4px; border-radius: 6px; cursor: pointer; border: none; background: transparent; }
-        .emoji-picker button:hover { background: rgba(99,102,241,0.15); }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        .stock-bar { height: 8px; border-radius: 9999px; transition: width 0.6s ease; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
-        /* Drag & Drop */
-        .dragging { opacity: 0.4; transform: scale(0.95); }
-        .drag-over { border: 2px dashed #6366f1 !important; }
-        .draggable-box { cursor: grab; }
-        .draggable-box:active { cursor: grabbing; }
-        /* Notes */
-        .note-textarea { resize: vertical; min-height: 80px; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+        :root { --accent: #f43f5e; }
+
+        [data-theme="slate"] {
+            --primary: #6366f1; --primary-glow: rgba(99,102,241,0.4);
+            --glass-card: rgba(30,41,59,0.6); --border-dark: rgba(255,255,255,0.08);
+            --bg-grad-1: #0f172a; --bg-grad-2: #020617;
+            --nav-bg: rgba(15,23,42,0.85); --input-bg: rgba(15,23,42,0.8);
+            --text-main: #f8fafc; --text-sub: #94a3b8;
+            --card-bg: rgba(30,41,59,0.7); --hover-bg: rgba(255,255,255,0.05);
+            --section-bg: rgba(30,41,59,0.9); --border-subtle: rgba(255,255,255,0.08);
+        }
+        [data-theme="nord"] {
+            --primary: #81a1c1; --primary-glow: rgba(129,161,193,0.4);
+            --glass-card: rgba(59,66,82,0.8); --border-dark: rgba(216,222,233,0.1);
+            --bg-grad-1: #2e3440; --bg-grad-2: #242933;
+            --nav-bg: rgba(46,52,64,0.95); --input-bg: rgba(67,76,94,0.8);
+            --text-main: #eceff4; --text-sub: #d8dee9;
+            --card-bg: rgba(59,66,82,0.7); --hover-bg: rgba(255,255,255,0.05);
+            --section-bg: rgba(59,66,82,0.9); --border-subtle: rgba(216,222,233,0.1);
+        }
+        [data-theme="mocha"] {
+            --primary: #d08770; --primary-glow: rgba(208,135,112,0.4);
+            --glass-card: rgba(60,56,54,0.8); --border-dark: rgba(235,219,178,0.08);
+            --bg-grad-1: #282828; --bg-grad-2: #1d2021;
+            --nav-bg: rgba(40,40,40,0.95); --input-bg: rgba(50,48,47,0.8);
+            --text-main: #ebdbb2; --text-sub: #a89984;
+            --card-bg: rgba(60,56,54,0.7); --hover-bg: rgba(255,255,255,0.05);
+            --section-bg: rgba(60,56,54,0.9); --border-subtle: rgba(235,219,178,0.08);
+        }
+        [data-theme="dracula"] {
+            --primary: #bd93f9; --primary-glow: rgba(189,147,249,0.4);
+            --glass-card: rgba(68,71,90,0.7); --border-dark: rgba(248,248,242,0.08);
+            --bg-grad-1: #282a36; --bg-grad-2: #21222c;
+            --nav-bg: rgba(40,42,54,0.9); --input-bg: rgba(68,71,90,0.5);
+            --text-main: #f8f8f2; --text-sub: #6272a4;
+            --card-bg: rgba(68,71,90,0.7); --hover-bg: rgba(255,255,255,0.05);
+            --section-bg: rgba(68,71,90,0.9); --border-subtle: rgba(248,248,242,0.08);
+        }
+        [data-theme="light"] {
+            --primary: #6366f1; --primary-glow: rgba(99,102,241,0.3);
+            --glass-card: rgba(255,255,255,0.7); --border-dark: rgba(0,0,0,0.08);
+            --bg-grad-1: #f8fafc; --bg-grad-2: #e2e8f0;
+            --nav-bg: rgba(255,255,255,0.9); --input-bg: rgba(241,245,249,0.9);
+            --text-main: #0f172a; --text-sub: #64748b;
+            --card-bg: rgba(255,255,255,0.8); --hover-bg: rgba(0,0,0,0.03);
+            --section-bg: rgba(255,255,255,0.95); --border-subtle: rgba(0,0,0,0.08);
+        }
+
+        body { font-family: 'Outfit','Prompt',sans-serif; background: radial-gradient(circle at top center,var(--bg-grad-1),var(--bg-grad-2)); background-attachment: fixed; color: var(--text-main); min-height: 100vh; scroll-behavior: smooth; transition: background 0.5s ease; }
+        .glass-card { background-color: var(--glass-card); backdrop-filter: blur(12px) saturate(150%); border: 1px solid var(--border-dark); transition: all 0.3s ease; }
+        .card-bg { background-color: var(--card-bg); }
+        .section-bg { background-color: var(--section-bg); }
+        .text-main { color: var(--text-main); }
+        .text-sub { color: var(--text-sub); }
+        .nav-bg { background-color: var(--nav-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-dark); }
+        .input-bg { background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-dark); }
+        .input-bg:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px var(--primary-glow); }
+        .hover-bg:hover { background-color: var(--hover-bg); }
+        .border-subtle { border-color: var(--border-subtle); }
+        .tab-active { color: var(--primary); border-color: var(--primary); font-weight: 600; }
+        .tab-inactive { color: var(--text-sub); }
+        .tab-inactive:hover { color: var(--text-main); }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .note-textarea { min-height: 80px; resize: vertical; }
+        .emoji-picker { display: flex; flex-wrap: wrap; gap: 4px; max-height: 120px; overflow-y: auto; }
+        .emoji-picker button { font-size: 18px; padding: 4px; border: none; background: none; cursor: pointer; border-radius: 6px; }
+        .emoji-picker button:hover { background: var(--hover-bg); }
+        .stock-bar { height: 100%; border-radius: 9999px; transition: width 1s ease; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-grad-2); }
+        ::-webkit-scrollbar-thumb { background-color: var(--primary); border-radius: 10px; opacity: 0.5; }
+        ::-webkit-scrollbar-thumb:hover { background-color: var(--text-sub); }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.5s ease forwards; }
+        .fade-in { animation: slideUp 0.4s ease-out forwards; }
+
+        .main-grid { display: grid; grid-template-columns: 1fr 350px; gap: 2rem; }
+        @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
+        .kanban-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; align-items: start; }
+        @media (max-width: 768px) { .kanban-grid { grid-template-columns: 1fr; } }
+        .kanban-col { min-height: 400px; padding: 12px; border-radius: 16px; }
+        .kanban-item { cursor: grab; }
+        .kanban-item:active { cursor: grabbing; }
+        .badge { padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+        .badge-urgent { background: rgba(244,63,94,0.1); color: #f43f5e; border: 1px solid rgba(244,63,94,0.2); }
+        .badge-normal { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+        .launcher-btn { transition: all 0.3s cubic-bezier(0.175,0.885,0.32,1.275); }
+        .launcher-btn:hover { transform: scale(1.1) rotate(3deg); }
+        .deadline-warning { animation: pulseRed 2s infinite; color: var(--accent); font-weight: 700; }
+        @keyframes pulseRed { 0%{opacity:1} 50%{opacity:0.5} 100%{opacity:1} }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .nav-title { display: none; }
+            .nav-right { gap: 4px; }
+            .nav-right select { font-size: 11px; padding: 4px 8px; }
+            .nav-right button { padding: 4px 8px; font-size: 11px; }
+        }
+        @media (max-width: 480px) {
+            .main-grid { gap: 1rem; }
+            body { font-size: 14px; }
+        }
     </style>
 </head>
-<body class="light min-h-screen">
+<body data-theme="slate">
 
 <!-- NAV -->
-<nav class="nav-bg text-white shadow-lg sticky top-0 z-50 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-chart-pie text-2xl"></i>
-                <span class="font-bold text-xl">Content Dashboard</span>
+<nav class="nav-bg sticky top-0 z-50">
+    <div class="max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8">
+        <div class="flex items-center justify-between h-14 sm:h-16 flex-wrap gap-y-1">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <i class="fa-solid fa-layer-group text-xl sm:text-2xl" style="color:var(--primary)"></i>
+                <span class="font-bold text-base sm:text-xl text-main tracking-wide nav-title truncate">Sync Master Dashboard</span>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="exportAllData()" class="p-2 rounded-lg hover:bg-white/10 transition-colors" title="Export ข้อมูล">
-                    <i class="fa-solid fa-download text-sm"></i>
-                </button>
-                <button onclick="document.getElementById('import-file').click()" class="p-2 rounded-lg hover:bg-white/10 transition-colors" title="Import ข้อมูล">
-                    <i class="fa-solid fa-upload text-sm"></i>
-                </button>
+            <div class="flex items-center gap-1 sm:gap-2 nav-right flex-shrink-0">
+                <button onclick="exportAllData()" class="p-1.5 sm:p-2 rounded-lg hover-bg transition-colors text-main" title="Export"><i class="fa-solid fa-download text-xs sm:text-sm"></i></button>
+                <button onclick="document.getElementById('import-file').click()" class="p-1.5 sm:p-2 rounded-lg hover-bg transition-colors text-main" title="Import"><i class="fa-solid fa-upload text-xs sm:text-sm"></i></button>
                 <input type="file" id="import-file" accept=".json" class="hidden" onchange="importAllData(event)">
-                <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-white/10 transition-colors" title="Night Mode">
-                    <i class="fa-solid fa-moon text-lg" id="dark-mode-icon"></i>
-                </button>
-                <button onclick="logout()" class="text-indigo-200 hover:text-white transition-colors text-sm ml-1">
-                    <i class="fa-solid fa-key mr-1"></i> เปลี่ยน API Key
+                <select id="theme-selector" onchange="changeTheme(this.value)" class="input-bg text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg cursor-pointer outline-none">
+                    <option value="slate">🌙 Slate</option>
+                    <option value="nord">❄️ Nord</option>
+                    <option value="mocha">☕ Mocha</option>
+                    <option value="dracula">🧛 Dracula</option>
+                    <option value="light">☀️ Light</option>
+                </select>
+                <button onclick="logout()" class="text-xs sm:text-sm font-medium text-main hover:text-rose-400 transition-colors hover-bg px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border" style="border-color:var(--border-dark)">
+                    <i class="fa-solid fa-key"></i><span class="hidden sm:inline ml-1">Key</span>
                 </button>
             </div>
         </div>
@@ -87,45 +148,84 @@
 </nav>
 
 <!-- LOGIN -->
-<div id="login-section" class="max-w-md mx-auto mt-20 section-bg p-8 rounded-2xl shadow-xl hidden">
+<div id="login-section" class="max-w-md mx-auto mt-12 sm:mt-24 glass-card p-4 sm:p-8 rounded-2xl shadow-2xl hidden mx-4 sm:mx-auto">
     <div class="text-center mb-6">
-        <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-600 text-2xl"><i class="fa-solid fa-lock"></i></div>
-        <h2 class="text-2xl font-bold text-main">เชื่อมต่อ Google Sheets</h2>
-        <p class="text-sub mt-2 text-sm">กรุณาใส่ Google API Key เพื่อดึงข้อมูล</p>
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border" style="background:var(--primary-glow);border-color:var(--border-dark)">
+            <i class="fa-solid fa-lock text-2xl" style="color:var(--primary)"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-main">Google Sheets Access</h2>
+        <p class="text-sub mt-2 text-sm">กรุณาใส่ Google API Key ของคุณ</p>
     </div>
     <div class="space-y-4">
-        <input type="password" id="api-key-input" placeholder="วาง API Key ที่นี่..." class="w-full px-4 py-3 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-        <button onclick="saveApiKey()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all">เข้าสู่ระบบ</button>
+        <input type="password" id="api-key-input" placeholder="วาง API Key (AIza...) ที่นี่..." class="w-full px-4 py-3 rounded-lg input-bg transition-all text-sm">
+        <button onclick="saveApiKey()" class="w-full text-white font-bold py-3 rounded-lg shadow-lg transition-all" style="background-color:var(--primary);">เชื่อมต่อระบบ</button>
         <div class="text-xs text-sub text-center mt-4">* AIzaSyAihSSlxF8yeYd0GhyMea4s9vb0aVbY8qw</div>
     </div>
 </div>
 
 <!-- LOADING -->
-<div id="loading-section" class="max-w-7xl mx-auto mt-20 text-center hidden">
-    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
-    <h3 class="text-xl font-medium text-main" id="loading-text">กำลังโหลดข้อมูลชีท...</h3>
-    <p class="text-sub mt-2" id="loading-subtext">อาจใช้เวลาสักครู่</p>
+<div id="loading-section" class="max-w-7xl mx-auto mt-32 text-center hidden">
+    <div class="inline-block animate-spin rounded-full h-14 w-14 border-4 border-t-transparent mb-6" style="border-color:var(--primary);border-top-color:transparent;"></div>
+    <h3 class="text-xl font-medium text-main" id="loading-text">กำลังโหลดข้อมูล...</h3>
+    <p class="text-sub mt-2 text-sm" id="loading-subtext">ประมวลผลและเชื่อมต่อ Google Sheets</p>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
-    <div class="flex items-center border-b border-subtle mb-6 overflow-x-auto" id="tabs-bar"></div>
-    <div id="tab-content" class="fade-in"></div>
+<div id="dashboard-section" class="max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 hidden">
+    <div class="main-grid">
+        <div class="space-y-6">
+            <div class="flex items-center glass-card rounded-xl px-1 sm:px-2 overflow-x-auto scrollbar-thin" id="tabs-bar" style="-webkit-overflow-scrolling:touch;"></div>
+            <div id="tab-content" class="fade-in min-h-[300px] sm:min-h-[500px]"></div>
+        </div>
+        <div class="space-y-6 hidden lg:block">
+            <div class="glass-card rounded-2xl p-6 sticky top-24">
+                <h3 class="text-sm font-bold text-main mb-4 flex items-center gap-2 tracking-wide uppercase">
+                    <i class="fa-solid fa-rocket" style="color:var(--primary)"></i> Quick Launcher
+                </h3>
+                <div id="program-launcher-grid" class="grid grid-cols-2 gap-3 mb-3"></div>
+                <a href="https://docs.google.com/spreadsheets/d/1yamIh1Uvb3hlPp3earQglGyUMtsNqPPLLe65lR53rNY/edit" target="_blank" class="glass-card hover-bg p-3 rounded-xl flex flex-col items-center gap-2 text-center group transition-colors border-l-4 border-l-emerald-500 mb-2 block">
+                    <i class="fa-solid fa-file-excel text-emerald-400 text-xl group-hover:scale-110 transition-transform"></i>
+                    <span class="text-[10px] font-bold text-main">Sheet งานต้น</span>
+                </a>
+                <a href="https://docs.google.com/spreadsheets/d/14jiUb5-96MY6rCIJTWkbcSBmbvCk_v8HdVRc589MjrU/edit" target="_blank" class="glass-card hover-bg p-3 rounded-xl flex flex-col items-center gap-2 text-center group transition-colors border-l-4 border-l-sky-500 mb-2 block">
+                    <i class="fa-solid fa-file-excel text-sky-400 text-xl group-hover:scale-110 transition-transform"></i>
+                    <span class="text-[10px] font-bold text-main">Sheet งานลุงตี่</span>
+                </a>
+                <button onclick="forceSyncAll()" class="w-full glass-card hover-bg p-3 rounded-xl flex items-center justify-center gap-2 text-center group transition-colors">
+                    <i class="fa-solid fa-rotate-right text-sm group-hover:-rotate-180 transition-transform duration-500" style="color:var(--primary)" id="sync-icon"></i>
+                    <span class="text-[12px] font-bold text-main">Sync ข้อมูลทั้งหมด</span>
+                </button>
+            </div>
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-main flex items-center gap-2 tracking-wide uppercase">
+                        <i class="fa-solid fa-list-check text-rose-400"></i> งานประจำวัน
+                    </h3>
+                    <button onclick="switchTab('todo')" class="text-[10px] hover:underline" style="color:var(--primary)">View All</button>
+                </div>
+                <div class="flex gap-2 mb-4">
+                    <input id="mini-todo-input" type="text" placeholder="พิมพ์งานด่วน..." class="input-bg w-full px-3 py-2 text-xs rounded-lg">
+                    <button onclick="addMiniTodo()" class="text-white px-3 py-2 rounded-lg text-xs font-bold" style="background-color:var(--primary);"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <div id="todo-preview-list" class="space-y-2 max-h-[400px] overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- MODAL: Create Tab -->
 <div id="modal-create-tab" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('modal-create-tab')">
     <div class="section-bg rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in">
-        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-plus-circle text-indigo-500 mr-2"></i>สร้าง Tab ใหม่</h3>
+        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-plus-circle mr-2" style="color:var(--primary)"></i>สร้าง Tab ใหม่</h3>
         <div class="space-y-4">
-            <div><label class="text-sm text-sub font-medium">ชื่อ Tab</label><input id="new-tab-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น งานพิเศษ"></div>
+            <div><label class="text-sm text-sub font-medium">ชื่อ Tab</label><input id="new-tab-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg" placeholder="เช่น งานพิเศษ"></div>
             <div><label class="text-sm text-sub font-medium">Emoji</label>
-                <div class="mt-1 flex items-center gap-3"><span id="new-tab-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('new-tab-emoji-picker').classList.toggle('hidden')">📁</span><input id="new-tab-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="วาง emoji" oninput="document.getElementById('new-tab-emoji-preview').innerText=this.value||'📁'"></div>
+                <div class="mt-1 flex items-center gap-3"><span id="new-tab-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('new-tab-emoji-picker').classList.toggle('hidden')">📁</span><input id="new-tab-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg" placeholder="วาง emoji" oninput="document.getElementById('new-tab-emoji-preview').innerText=this.value||'📁'"></div>
                 <div id="new-tab-emoji-picker" class="emoji-picker mt-2 hidden"></div>
             </div>
             <div class="flex gap-3 pt-2">
-                <button onclick="closeModal('modal-create-tab')" class="flex-1 py-2.5 rounded-lg border border-gray-300 text-sub hover-bg transition-colors">ยกเลิก</button>
-                <button onclick="createCustomTab()" class="flex-1 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors">สร้าง</button>
+                <button onclick="closeModal('modal-create-tab')" class="flex-1 py-2.5 rounded-lg border text-sub hover-bg transition-colors" style="border-color:var(--border-dark)">ยกเลิก</button>
+                <button onclick="createCustomTab()" class="flex-1 py-2.5 rounded-lg text-white font-semibold transition-colors" style="background-color:var(--primary)">สร้าง</button>
             </div>
         </div>
     </div>
@@ -134,19 +234,19 @@
 <!-- MODAL: Create Box -->
 <div id="modal-create-box" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('modal-create-box')">
     <div class="section-bg rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in" style="max-height:90vh;overflow-y:auto">
-        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-box-open text-indigo-500 mr-2"></i>สร้างกล่องติดตามงาน</h3>
+        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-box-open mr-2" style="color:var(--primary)"></i>สร้างกล่องติดตามงาน</h3>
         <div class="space-y-4">
-            <div><label class="text-sm text-sub font-medium">ชื่อกล่อง</label><input id="new-box-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น งานคลิปสั้น"></div>
+            <div><label class="text-sm text-sub font-medium">ชื่อกล่อง</label><input id="new-box-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg" placeholder="เช่น งานคลิปสั้น"></div>
             <div><label class="text-sm text-sub font-medium">Emoji</label>
-                <div class="mt-1 flex items-center gap-3"><span id="new-box-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('new-box-emoji-picker').classList.toggle('hidden')">📦</span><input id="new-box-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="วาง emoji" oninput="document.getElementById('new-box-emoji-preview').innerText=this.value||'📦'"></div>
+                <div class="mt-1 flex items-center gap-3"><span id="new-box-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('new-box-emoji-picker').classList.toggle('hidden')">📦</span><input id="new-box-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg" placeholder="วาง emoji" oninput="document.getElementById('new-box-emoji-preview').innerText=this.value||'📦'"></div>
                 <div id="new-box-emoji-picker" class="emoji-picker mt-2 hidden"></div>
             </div>
-            <div><label class="text-sm text-sub font-medium">Spreadsheet ID</label><input id="new-box-sheet-id" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none text-xs" placeholder="เช่น 14jiUb5-96MY6rCIJTWkbcSBmbvCk..."></div>
+            <div><label class="text-sm text-sub font-medium">Spreadsheet ID</label><input id="new-box-sheet-id" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg text-xs" placeholder="เช่น 14jiUb5-96MY6rCIJTWkbcSBmbvCk..."></div>
             <div class="grid grid-cols-2 gap-3">
-                <div><label class="text-sm text-sub font-medium">ชื่อ Sheet</label><input id="new-box-sheet-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น ทั้งหมด"></div>
-                <div><label class="text-sm text-sub font-medium">Cell</label><input id="new-box-cell" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น K2"></div>
+                <div><label class="text-sm text-sub font-medium">ชื่อ Sheet</label><input id="new-box-sheet-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg" placeholder="เช่น ทั้งหมด"></div>
+                <div><label class="text-sm text-sub font-medium">Cell</label><input id="new-box-cell" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg" placeholder="เช่น K2"></div>
             </div>
-            <div><label class="text-sm text-sub font-medium">Link (ไม่บังคับ)</label><input id="new-box-link" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none text-xs" placeholder="https://docs.google.com/spreadsheets/d/..."></div>
+            <div><label class="text-sm text-sub font-medium">Link (ไม่บังคับ)</label><input id="new-box-link" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg text-xs" placeholder="https://..."></div>
             <div><label class="text-sm text-sub font-medium">สีธีม</label>
                 <div class="flex gap-2 mt-1 flex-wrap">
                     <button onclick="selectBoxColor('indigo')" class="w-8 h-8 rounded-full bg-indigo-500 border-2 border-transparent hover:border-white box-color-btn" data-color="indigo"></button>
@@ -159,8 +259,8 @@
                 </div>
             </div>
             <div class="flex gap-3 pt-2">
-                <button onclick="closeModal('modal-create-box')" class="flex-1 py-2.5 rounded-lg border border-gray-300 text-sub hover-bg transition-colors">ยกเลิก</button>
-                <button onclick="createCustomBox()" class="flex-1 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors">สร้าง</button>
+                <button onclick="closeModal('modal-create-box')" class="flex-1 py-2.5 rounded-lg border text-sub hover-bg transition-colors" style="border-color:var(--border-dark)">ยกเลิก</button>
+                <button onclick="createCustomBox()" class="flex-1 py-2.5 rounded-lg text-white font-semibold transition-colors" style="background-color:var(--primary)">สร้าง</button>
             </div>
         </div>
     </div>
@@ -169,19 +269,19 @@
 <!-- MODAL: Edit Box -->
 <div id="modal-edit-box" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('modal-edit-box')">
     <div class="section-bg rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in" style="max-height:90vh;overflow-y:auto">
-        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-pen text-indigo-500 mr-2"></i>แก้ไขกล่อง</h3>
+        <h3 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-pen mr-2" style="color:var(--primary)"></i>แก้ไขกล่อง</h3>
         <div class="space-y-4">
-            <div><label class="text-sm text-sub font-medium">ชื่อกล่อง</label><input id="edit-box-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+            <div><label class="text-sm text-sub font-medium">ชื่อกล่อง</label><input id="edit-box-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg"></div>
             <div><label class="text-sm text-sub font-medium">Emoji</label>
-                <div class="mt-1 flex items-center gap-3"><span id="edit-box-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('edit-box-emoji-picker').classList.toggle('hidden')">📦</span><input id="edit-box-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" oninput="document.getElementById('edit-box-emoji-preview').innerText=this.value||'📦'"></div>
+                <div class="mt-1 flex items-center gap-3"><span id="edit-box-emoji-preview" class="text-3xl cursor-pointer" onclick="document.getElementById('edit-box-emoji-picker').classList.toggle('hidden')">📦</span><input id="edit-box-emoji-input" class="w-full px-4 py-2.5 rounded-lg input-bg" oninput="document.getElementById('edit-box-emoji-preview').innerText=this.value||'📦'"></div>
                 <div id="edit-box-emoji-picker" class="emoji-picker mt-2 hidden"></div>
             </div>
-            <div><label class="text-sm text-sub font-medium">Spreadsheet ID</label><input id="edit-box-sheet-id" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none text-xs"></div>
+            <div><label class="text-sm text-sub font-medium">Spreadsheet ID</label><input id="edit-box-sheet-id" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg text-xs"></div>
             <div class="grid grid-cols-2 gap-3">
-                <div><label class="text-sm text-sub font-medium">ชื่อ Sheet</label><input id="edit-box-sheet-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
-                <div><label class="text-sm text-sub font-medium">Cell</label><input id="edit-box-cell" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                <div><label class="text-sm text-sub font-medium">ชื่อ Sheet</label><input id="edit-box-sheet-name" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg"></div>
+                <div><label class="text-sm text-sub font-medium">Cell</label><input id="edit-box-cell" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg"></div>
             </div>
-            <div><label class="text-sm text-sub font-medium">Link</label><input id="edit-box-link" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none text-xs"></div>
+            <div><label class="text-sm text-sub font-medium">Link</label><input id="edit-box-link" class="w-full mt-1 px-4 py-2.5 rounded-lg input-bg text-xs"></div>
             <div><label class="text-sm text-sub font-medium">สีธีม</label>
                 <div class="flex gap-2 mt-1 flex-wrap">
                     <button onclick="selectEditBoxColor('indigo')" class="w-8 h-8 rounded-full bg-indigo-500 border-2 border-transparent hover:border-white edit-box-color-btn" data-color="indigo"></button>
@@ -196,8 +296,8 @@
             <div class="flex gap-3 pt-2">
                 <button onclick="deleteEditBox()" class="py-2.5 px-4 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors"><i class="fa-solid fa-trash mr-1"></i>ลบ</button>
                 <div class="flex-1"></div>
-                <button onclick="closeModal('modal-edit-box')" class="py-2.5 px-4 rounded-lg border border-gray-300 text-sub hover-bg transition-colors">ยกเลิก</button>
-                <button onclick="saveEditBox()" class="py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors">บันทึก</button>
+                <button onclick="closeModal('modal-edit-box')" class="py-2.5 px-4 rounded-lg border text-sub hover-bg transition-colors" style="border-color:var(--border-dark)">ยกเลิก</button>
+                <button onclick="saveEditBox()" class="py-2.5 px-4 rounded-lg text-white font-semibold transition-colors" style="background-color:var(--primary)">บันทึก</button>
             </div>
         </div>
     </div>
@@ -207,62 +307,62 @@
 // ===========================
 // CONFIG & STATE
 // ===========================
-const SPREADSHEETS = {
-    main: '14jiUb5-96MY6rCIJTWkbcSBmbvCk_v8HdVRc589MjrU',
-    youtube: '1ZqTDnbals2n-dQA-6-GrvYtaWbBf3nDqEkkBtOwJn8A',
-    yok: '1BGCO3xKKeVmaRQiYmfPnYAhWSz-F3KDr5I89seA3I84'
-};
+const SPREADSHEET_TON = '1yamIh1Uvb3hlPp3earQglGyUMtsNqPPLLe65lR53rNY';
+const SPREADSHEET_TEE = '14jiUb5-96MY6rCIJTWkbcSBmbvCk_v8HdVRc589MjrU';
+const SPREADSHEET_HUB = '1wrWxK-NcPrkY0_cTaeXiTtE6HuGLS8zhk_iai94vdGY';
+const SPREADSHEETS = { main: '14jiUb5-96MY6rCIJTWkbcSBmbvCk_v8HdVRc589MjrU', youtube: '1ZqTDnbals2n-dQA-6-GrvYtaWbBf3nDqEkkBtOwJn8A', yok: '1BGCO3xKKeVmaRQiYmfPnYAhWSz-F3KDr5I89seA3I84' };
 const AI_SOURCES = [
     { id: '1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME', sheetName: 'แนะนำเวป', cell: 'L2', displayName: 'คลิปแนะนำเวป', link: 'https://docs.google.com/spreadsheets/d/1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME/edit' },
     { id: '1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME', sheetName: 'ทั้งหมด', cell: 'K2', displayName: 'คำคมAI', link: 'https://docs.google.com/spreadsheets/d/1o_xAHtJgq8RBQbNVZnibrprvpM5E_UBo-7VEkyzoJME/edit#gid=1068625072' },
     { id: '1Rr0thsqzrLmTKcmAO_z4dKSZpE_5JexWSJxXn4Ot77U', sheetName: 'AI', cell: 'K2', displayName: 'รูปinfo', link: 'https://docs.google.com/spreadsheets/d/1Rr0thsqzrLmTKcmAO_z4dKSZpE_5JexWSJxXn4Ot77U/edit#gid=1137134987' },
-    { id: '1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg', sheetName: 'AI_Clickbait', cell: 'M2', displayName: 'รูปแดงClickbait', link: 'https://docs.google.com/spreadsheets/d/1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg/edit?gid=1527366755#gid=1527366755' },
-    { id: '1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8', sheetName: 'ข่าวเวปจีน', cell: 'S2', displayName: 'ข่าวwebจีน', link: 'https://docs.google.com/spreadsheets/d/1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8/edit?gid=0#gid=0' }
+    { id: '1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg', sheetName: 'AI_Clickbait', cell: 'M2', displayName: 'รูปแดงClickbait', link: 'https://docs.google.com/spreadsheets/d/1UdHqY_1Huu32aAgAovFuPWkOj7A_dkaSpSVOEqFUnQg/edit?gid=1527366755' },
+    { id: '1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8', sheetName: 'ข่าวเวปจีน', cell: 'S2', displayName: 'ข่าวwebจีน', link: 'https://docs.google.com/spreadsheets/d/1uqJgzxYEJterGP30jMg79oK3mGu-efbXiyXm7VqXIi8/edit' }
 ];
 const HOROSCOPE_SOURCES = [
-    { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'ทั้งหมด', cell: 'P2', displayName: 'รูปinfo', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=0#gid=0' },
-    { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'รีวิวดูดวง', cell: 'L2', displayName: 'รูปรีวิวดูดวง', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=232046644#gid=232046644' },
-    { id: '1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE', sheetName: 'ทั้งหมด', cell: 'L2', displayName: 'คลิปทายใจดูดวง', link: 'https://docs.google.com/spreadsheets/d/1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE/edit?gid=0#gid=0' }
+    { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'ทั้งหมด', cell: 'P2', displayName: 'รูปinfo', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit' },
+    { id: '1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA', sheetName: 'รีวิวดูดวง', cell: 'L2', displayName: 'รูปรีวิวดูดวง', link: 'https://docs.google.com/spreadsheets/d/1cag1Je3-QxAW-ugGAVZGodVZyYj46LmEy207TTOI8pA/edit?gid=232046644' },
+    { id: '1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE', sheetName: 'ทั้งหมด', cell: 'L2', displayName: 'คลิปทายใจดูดวง', link: 'https://docs.google.com/spreadsheets/d/1xtNAYt4FE_74YY2X3to3mvrai6RcBS7EzVYZyyMuFVE/edit' }
 ];
 const OTHERS_SOURCES = [
     { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'A2', displayName: 'งานรีวิวสินค้า (จำลอง)', link: '#' },
-    { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'B2', displayName: 'บทความสปอนเซอร์ (จำลอง)', link: '#' },
-    { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'C2', displayName: 'งานจิปาถะ (จำลอง)', link: '#' }
+    { id: 'MOCK_ID', sheetName: 'Sheet1', cell: 'B2', displayName: 'บทความสปอนเซอร์ (จำลอง)', link: '#' }
 ];
-
 const BUILTIN_TABS = [
     { id: 'overview', name: 'Dashboard', emoji: '📊', type: 'overview' },
     { id: 'todo', name: 'Todo List', emoji: '✅', type: 'todo' },
-    { id: 'stockcheck', name: 'ตรวจ Stock', emoji: '🔍', type: 'stockcheck' },
-    { id: 'main', name: 'บทความ / โพสต์', emoji: '📝', type: 'sheets' },
-    { id: 'youtube', name: 'Youtube', emoji: '🎬', type: 'sheets' },
-    { id: 'yok', name: 'หยก', emoji: '💎', type: 'sheets' },
-    { id: 'ai', name: 'AI', emoji: '🤖', type: 'sheets' },
-    { id: 'horoscope', name: 'ดูดวง', emoji: '⭐', type: 'sheets' },
-    { id: 'others', name: 'อื่นๆ', emoji: '📂', type: 'sheets' }
+    { id: 'ton', name: 'งานของต้น', emoji: '🧑‍🚀', type: 'ton' },
+    { id: 'tee', name: 'งานของลุงตี่', emoji: '👔', type: 'tee' }
 ];
+const PROGRAMS = [
+    { name: 'สร้างดวงรายวัน', emoji: '🔮', path: '/Users/paulpolsulintaboon/Documents/โปรแกรม/สร้างดวงรายวัน/เปิดโปรแกรม.command', color: 'purple' },
+    { name: 'ดูดวงไพ่ 299', emoji: '🃏', path: '/Users/paulpolsulintaboon/Documents/โปรแกรม/ดูดวงไพ่299/เปิดโปรแกรม.command', color: 'pink' },
+    { name: 'Binary Option', emoji: '📈', path: '/Users/paulpolsulintaboon/Documents/โปรแกรม/BinaryOption/เปิด Dashboard.command', color: 'indigo' },
+    { name: 'ตัดต่อคลิป', emoji: '✂️', path: '/Users/paulpolsulintaboon/Documents/โปรแกรม/ตัดต่อคลิปนักข่าว/เปิดโปรแกรมตัดต่อ.command', color: 'red' }
+];
+const EMOJIS = ['📁','📂','📊','📈','📉','📋','📌','📍','✏️','✅','❌','⭐','🌟','💡','🔥','💎','🎯','🎬','🎨','🎵','🎮','🏆','💰','📱','💻','🌐','🔗','🔒','🔑','🔔','📣','💬','❤️','📦','📮','🚀','⚡','🌈','☀️','🌙','🍀','🌸','🎁','🎉','🏠','⏰','📅','📝','📰','🧾','🔍','🧩','🎲','🎯','🏁'];
 
-let chartInstance = null;
 let currentTab = 'overview';
-let sheetsData = { main: null, youtube: null, yok: null, ai: null, horoscope: null, others: null };
+let sheetsData = { ton: null, tee: null, hub: null, main: null, youtube: null, yok: null, ai: null, horoscope: null, others: null };
+let chartInstance = null;
+let chartInstances = {};
 let customTabs = JSON.parse(localStorage.getItem('custom_tabs') || '[]');
 let customBoxes = JSON.parse(localStorage.getItem('custom_boxes') || '{}');
-let todoItems = JSON.parse(localStorage.getItem('todo_items') || '[]');
+let todoItems = JSON.parse(localStorage.getItem('todo_items') || '[]').map(t => ({...t, category: t.category||'', deadline: t.deadline||'', priority: t.priority||'medium', column: t.column||(t.done?'finished':'waiting')}));
 let pageNotes = JSON.parse(localStorage.getItem('page_notes') || '{}');
 let selectedBoxColor = 'indigo';
 let editBoxColor = 'indigo';
 let editingBoxIndex = -1;
 let editingTabId = '';
-let isDark = localStorage.getItem('dark_mode') === 'true';
 let dragSrcIndex = null;
-
-const EMOJIS = ['📁','📂','📊','📈','📉','📋','📌','📍','✏️','✅','❌','⭐','🌟','💡','🔥','💎','🎯','🎬','🎨','🎵','🎮','🏆','🏅','🎖️','💰','💵','💳','🛒','🛍️','📱','💻','🖥️','🌐','🔗','🔒','🔑','🔔','📣','💬','💭','❤️','🧡','💛','💚','💙','💜','🖤','🤍','📦','📮','✈️','🚀','⚡','🌈','☀️','🌙','🍀','🌸','🎄','🎁','🎉','🎊','🏠','🏢','🏥','🏫','⏰','📅','🗓️','📝','📰','🗞️','🧾','🔍','🔎','🧩','🎲','♟️','🎯','🏁'];
 
 // ===========================
 // INIT
 // ===========================
 window.onload = () => {
-    applyTheme();
+    const savedTheme = localStorage.getItem('dashboard_theme') || 'slate';
+    document.body.setAttribute('data-theme', savedTheme);
+    const ts = document.getElementById('theme-selector');
+    if(ts) ts.value = savedTheme;
     populateEmojiPickers();
     const apiKey = localStorage.getItem('google_api_key');
     if (apiKey) { renderTabs(); switchTab('overview'); }
@@ -272,18 +372,17 @@ window.onload = () => {
 // ===========================
 // THEME
 // ===========================
-function toggleDarkMode() { isDark = !isDark; localStorage.setItem('dark_mode', isDark); applyTheme(); }
-function applyTheme() {
-    document.body.classList.remove('light','dark');
-    document.body.classList.add(isDark ? 'dark' : 'light');
-    document.getElementById('dark-mode-icon').className = isDark ? 'fa-solid fa-sun text-lg text-yellow-300' : 'fa-solid fa-moon text-lg';
+function changeTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('dashboard_theme', theme);
+    if(currentTab === 'overview') renderOverviewPage();
 }
 
 // ===========================
-// SECTIONS
+// SECTIONS & LOGIN
 // ===========================
 function showSection(id) { ['login-section','loading-section','dashboard-section'].forEach(s => document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-function saveApiKey() { const v = document.getElementById('api-key-input').value.trim(); if (!v){alert('กรุณากรอก API Key');return;} localStorage.setItem('google_api_key',v); renderTabs(); switchTab('overview'); }
+function saveApiKey() { const v = document.getElementById('api-key-input').value.trim(); if(!v){alert('กรุณากรอก API Key');return;} localStorage.setItem('google_api_key',v); renderTabs(); switchTab('overview'); }
 function logout() { localStorage.removeItem('google_api_key'); document.getElementById('api-key-input').value=''; showSection('login-section'); }
 function updateLoadingText(t,s='') { document.getElementById('loading-text').innerText=t; document.getElementById('loading-subtext').innerText=s; }
 
@@ -294,62 +393,56 @@ function openModal(id) { document.getElementById(id).classList.remove('hidden');
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function populateEmojiPickers() {
     ['new-tab-emoji-picker','new-box-emoji-picker','edit-box-emoji-picker'].forEach(pid => {
-        document.getElementById(pid).innerHTML = EMOJIS.map(e => `<button onclick="pickEmoji('${pid}','${e}')">${e}</button>`).join('');
+        const el = document.getElementById(pid);
+        if(el) el.innerHTML = EMOJIS.map(e => `<button onclick="pickEmoji('${pid}','${e}')">${e}</button>`).join('');
     });
 }
 function pickEmoji(pid, emoji) {
-    const map = { 'new-tab-emoji-picker': ['new-tab-emoji-input','new-tab-emoji-preview'], 'new-box-emoji-picker': ['new-box-emoji-input','new-box-emoji-preview'], 'edit-box-emoji-picker': ['edit-box-emoji-input','edit-box-emoji-preview'] };
-    const [inp, prev] = map[pid]; document.getElementById(inp).value = emoji; document.getElementById(prev).innerText = emoji; document.getElementById(pid).classList.add('hidden');
+    const map = { 'new-tab-emoji-picker':['new-tab-emoji-input','new-tab-emoji-preview'], 'new-box-emoji-picker':['new-box-emoji-input','new-box-emoji-preview'], 'edit-box-emoji-picker':['edit-box-emoji-input','edit-box-emoji-preview'] };
+    const [inp,prev] = map[pid]; document.getElementById(inp).value=emoji; document.getElementById(prev).innerText=emoji; document.getElementById(pid).classList.add('hidden');
 }
-function selectBoxColor(c) { selectedBoxColor=c; document.querySelectorAll('.box-color-btn').forEach(b=>{b.style.boxShadow=b.dataset.color===c?'0 0 0 3px rgba(99,102,241,0.5)':''; }); }
-function selectEditBoxColor(c) { editBoxColor=c; document.querySelectorAll('.edit-box-color-btn').forEach(b=>{b.style.boxShadow=b.dataset.color===c?'0 0 0 3px rgba(99,102,241,0.5)':''; }); }
+function selectBoxColor(c) { selectedBoxColor=c; document.querySelectorAll('.box-color-btn').forEach(b=>{b.style.boxShadow=b.dataset.color===c?'0 0 0 3px var(--primary-glow)':''}); }
+function selectEditBoxColor(c) { editBoxColor=c; document.querySelectorAll('.edit-box-color-btn').forEach(b=>{b.style.boxShadow=b.dataset.color===c?'0 0 0 3px var(--primary-glow)':''}); }
 
 // ===========================
 // EXPORT / IMPORT
 // ===========================
 function exportAllData() {
     const data = { custom_tabs: customTabs, custom_boxes: customBoxes, todo_items: todoItems, page_notes: pageNotes, exported_at: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
     a.download = `dashboard-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
 }
 function importAllData(event) {
-    const file = event.target.files[0]; if (!file) return;
+    const file = event.target.files[0]; if(!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            if (data.custom_tabs) { customTabs = data.custom_tabs; localStorage.setItem('custom_tabs', JSON.stringify(customTabs)); }
-            if (data.custom_boxes) { customBoxes = data.custom_boxes; localStorage.setItem('custom_boxes', JSON.stringify(customBoxes)); }
-            if (data.todo_items) { todoItems = data.todo_items; localStorage.setItem('todo_items', JSON.stringify(todoItems)); }
-            if (data.page_notes) { pageNotes = data.page_notes; localStorage.setItem('page_notes', JSON.stringify(pageNotes)); }
-            alert('Import สำเร็จ!');
-            renderTabs(); switchTab(currentTab);
-        } catch(err) { alert('ไฟล์ไม่ถูกต้อง: ' + err.message); }
+            if(data.custom_tabs){customTabs=data.custom_tabs;localStorage.setItem('custom_tabs',JSON.stringify(customTabs));}
+            if(data.custom_boxes){customBoxes=data.custom_boxes;localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));}
+            if(data.todo_items){todoItems=data.todo_items;localStorage.setItem('todo_items',JSON.stringify(todoItems));}
+            if(data.page_notes){pageNotes=data.page_notes;localStorage.setItem('page_notes',JSON.stringify(pageNotes));}
+            alert('Import สำเร็จ!'); renderTabs(); switchTab(currentTab);
+        } catch(err) { alert('ไฟล์ไม่ถูกต้อง: '+err.message); }
     };
-    reader.readAsText(file);
-    event.target.value = '';
+    reader.readAsText(file); event.target.value='';
 }
 
 // ===========================
-// NOTES (per page)
+// NOTES
 // ===========================
-function getNote(tabId) { return pageNotes[tabId] || ''; }
-function saveNote(tabId) {
-    const el = document.getElementById('note-textarea-' + tabId);
-    if (el) { pageNotes[tabId] = el.value; localStorage.setItem('page_notes', JSON.stringify(pageNotes)); }
-}
+function getNote(tabId) { return pageNotes[tabId]||''; }
+function saveNote(tabId) { const el=document.getElementById('note-textarea-'+tabId); if(el){pageNotes[tabId]=el.value;localStorage.setItem('page_notes',JSON.stringify(pageNotes));} }
 function renderNoteBox(tabId) {
-    const note = getNote(tabId);
-    const isCollapsed = !note;
-    return `
-    <div class="card-bg rounded-2xl shadow-sm border border-subtle mb-6">
+    const note=getNote(tabId); const isCollapsed=!note;
+    return `<div class="card-bg rounded-2xl shadow-sm border border-subtle mb-6">
         <button onclick="document.getElementById('note-body-${tabId}').classList.toggle('hidden');document.getElementById('note-arrow-${tabId}').classList.toggle('rotate-180')" class="w-full flex items-center justify-between p-4 hover-bg rounded-2xl transition-colors">
             <span class="text-sm font-semibold text-main flex items-center gap-2"><i class="fa-solid fa-sticky-note text-amber-500"></i> โน้ตของหน้านี้</span>
-            <i id="note-arrow-${tabId}" class="fa-solid fa-chevron-down text-sub text-xs transition-transform ${isCollapsed ? '' : 'rotate-180'}"></i>
+            <i id="note-arrow-${tabId}" class="fa-solid fa-chevron-down text-sub text-xs transition-transform ${isCollapsed?'':'rotate-180'}"></i>
         </button>
-        <div id="note-body-${tabId}" class="${isCollapsed ? 'hidden' : ''} px-4 pb-4">
-            <textarea id="note-textarea-${tabId}" class="w-full px-3 py-2 rounded-lg input-bg text-sm note-textarea focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เขียนโน้ตที่นี่... (บันทึกอัตโนมัติ)" oninput="saveNote('${tabId}')">${note}</textarea>
+        <div id="note-body-${tabId}" class="${isCollapsed?'hidden':''} px-4 pb-4">
+            <textarea id="note-textarea-${tabId}" class="w-full px-3 py-2 rounded-lg input-bg text-sm note-textarea" placeholder="เขียนโน้ตที่นี่..." oninput="saveNote('${tabId}')">${note}</textarea>
         </div>
     </div>`;
 }
@@ -362,24 +455,28 @@ function renderTabs() {
     const bar = document.getElementById('tabs-bar');
     bar.innerHTML = getAllTabs().map(t => {
         const isActive = currentTab === t.id;
-        return `<button onclick="switchTab('${t.id}')" class="px-4 py-3 font-medium border-b-2 transition-colors flex items-center whitespace-nowrap gap-1.5 text-sm ${isActive?'tab-active font-semibold':'tab-inactive border-transparent hover:border-gray-300'}">${t.emoji} ${t.name}</button>`;
-    }).join('') + `<button onclick="openModal('modal-create-tab')" class="px-4 py-3 text-sub hover:text-indigo-500 border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap gap-1 text-sm"><i class="fa-solid fa-plus"></i> เพิ่ม Tab</button>`;
+        return `<button onclick="switchTab('${t.id}')" class="px-4 py-3 font-medium border-b-2 transition-colors flex items-center whitespace-nowrap gap-1.5 text-sm ${isActive?'tab-active font-semibold':'tab-inactive border-transparent'}">${t.emoji} ${t.name}</button>`;
+    }).join('') + `<button onclick="openModal('modal-create-tab')" class="px-4 py-3 text-sub border-b-2 border-transparent transition-colors flex items-center whitespace-nowrap gap-1 text-sm" style="color:var(--primary)"><i class="fa-solid fa-plus"></i> เพิ่ม Tab</button>`;
 }
 function switchTab(tabId) {
     currentTab = tabId; renderTabs();
-    if (!localStorage.getItem('google_api_key')) { showSection('login-section'); return; }
-    const tab = getAllTabs().find(t=>t.id===tabId); if(!tab)return;
+    if(!localStorage.getItem('google_api_key')) { showSection('login-section'); return; }
+    const tab = getAllTabs().find(t=>t.id===tabId); if(!tab) return;
     showSection('dashboard-section');
-    if (tab.type==='overview') renderOverviewPage();
-    else if (tab.type==='todo') renderTodoPage();
-    else if (tab.type==='stockcheck') renderStockCheckPage();
-    else if (tab.type==='sheets') { if(sheetsData[tabId]) renderSheetsPage(tabId); else fetchData(tabId); }
-    else if (tab.type==='custom') renderCustomTabPage(tabId);
+    renderSidebars();
+    if(tab.type==='overview') renderOverviewPage();
+    else if(tab.type==='todo') renderTodoPage();
+    else if(tab.type==='stockcheck') renderStockCheckPage();
+    else if(tab.type==='ton') { if(sheetsData.ton) renderTonPage(); else fetchTonTeeData('ton'); }
+    else if(tab.type==='tee') { if(sheetsData.tee) renderTeePage(); else fetchTonTeeData('tee'); }
+    else if(tab.type==='hub') { if(sheetsData.hub) renderHubPage(tabId); else fetchHubData(tabId); }
+    else if(tab.type==='sheets') { if(sheetsData[tabId]) renderSheetsPage(tabId); else fetchData(tabId); }
+    else if(tab.type==='custom') renderCustomTabPage(tabId);
 }
 function createCustomTab() {
-    const name = document.getElementById('new-tab-name').value.trim(); if(!name){alert('กรุณาใส่ชื่อ');return;}
-    const emoji = document.getElementById('new-tab-emoji-input').value.trim()||'📁';
-    const id = 'custom_'+Date.now();
+    const name=document.getElementById('new-tab-name').value.trim(); if(!name){alert('กรุณาใส่ชื่อ');return;}
+    const emoji=document.getElementById('new-tab-emoji-input').value.trim()||'📁';
+    const id='custom_'+Date.now();
     customTabs.push({id,name,emoji,type:'custom'}); if(!customBoxes[id])customBoxes[id]=[];
     localStorage.setItem('custom_tabs',JSON.stringify(customTabs)); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));
     document.getElementById('new-tab-name').value=''; document.getElementById('new-tab-emoji-input').value=''; document.getElementById('new-tab-emoji-preview').innerText='📁';
@@ -388,23 +485,20 @@ function createCustomTab() {
 function deleteCustomTab(tabId) { if(!confirm('ลบ Tab นี้?'))return; customTabs=customTabs.filter(t=>t.id!==tabId); delete customBoxes[tabId]; delete pageNotes[tabId]; localStorage.setItem('custom_tabs',JSON.stringify(customTabs)); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); localStorage.setItem('page_notes',JSON.stringify(pageNotes)); switchTab('overview'); }
 
 // ===========================
-// CUSTOM BOXES (works on ALL pages)
+// CUSTOM BOXES
 // ===========================
 function createCustomBox() {
-    const name = document.getElementById('new-box-name').value.trim(); if(!name){alert('กรุณาใส่ชื่อ');return;}
-    const emoji = document.getElementById('new-box-emoji-input').value.trim()||'📦';
-    const box = { name, emoji, sheetId: document.getElementById('new-box-sheet-id').value.trim(), sheetName: document.getElementById('new-box-sheet-name').value.trim(), cell: document.getElementById('new-box-cell').value.trim(), link: document.getElementById('new-box-link').value.trim(), color: selectedBoxColor, value: null };
+    const name=document.getElementById('new-box-name').value.trim(); if(!name){alert('กรุณาใส่ชื่อ');return;}
+    const emoji=document.getElementById('new-box-emoji-input').value.trim()||'📦';
+    const box={name,emoji,sheetId:document.getElementById('new-box-sheet-id').value.trim(),sheetName:document.getElementById('new-box-sheet-name').value.trim(),cell:document.getElementById('new-box-cell').value.trim(),link:document.getElementById('new-box-link').value.trim(),color:selectedBoxColor,value:null};
     if(!customBoxes[currentTab])customBoxes[currentTab]=[];
-    customBoxes[currentTab].push(box);
-    localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));
+    customBoxes[currentTab].push(box); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));
     ['new-box-name','new-box-sheet-id','new-box-sheet-name','new-box-cell','new-box-link'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('new-box-emoji-input').value=''; document.getElementById('new-box-emoji-preview').innerText='📦';
-    closeModal('modal-create-box');
-    switchTab(currentTab); // re-render current page
+    closeModal('modal-create-box'); switchTab(currentTab);
 }
-function openEditBox(tabId, index) {
-    editingTabId=tabId; editingBoxIndex=index;
-    const box = customBoxes[tabId][index];
+function openEditBox(tabId,index) {
+    editingTabId=tabId; editingBoxIndex=index; const box=customBoxes[tabId][index];
     document.getElementById('edit-box-name').value=box.name; document.getElementById('edit-box-emoji-input').value=box.emoji; document.getElementById('edit-box-emoji-preview').innerText=box.emoji;
     document.getElementById('edit-box-sheet-id').value=box.sheetId||''; document.getElementById('edit-box-sheet-name').value=box.sheetName||'';
     document.getElementById('edit-box-cell').value=box.cell||''; document.getElementById('edit-box-link').value=box.link||'';
@@ -419,116 +513,176 @@ function saveEditBox() {
     localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); closeModal('modal-edit-box'); switchTab(currentTab);
 }
 function deleteEditBox() { if(!confirm('ลบกล่องนี้?'))return; customBoxes[editingTabId].splice(editingBoxIndex,1); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); closeModal('modal-edit-box'); switchTab(currentTab); }
-function deleteBoxDirect(tabId, idx) { if(!confirm('ลบกล่องนี้?'))return; customBoxes[tabId].splice(idx,1); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); switchTab(currentTab); }
+function deleteBoxDirect(tabId,idx) { if(!confirm('ลบกล่องนี้?'))return; customBoxes[tabId].splice(idx,1); localStorage.setItem('custom_boxes',JSON.stringify(customBoxes)); switchTab(currentTab); }
 
-// ===========================
-// DRAG & DROP for custom boxes
-// ===========================
-function setupDragAndDrop(tabId) {
-    const container = document.getElementById('custom-boxes-grid');
-    if (!container) return;
-    const items = container.querySelectorAll('.draggable-box');
-    items.forEach((item, idx) => {
-        item.setAttribute('draggable', 'true');
-        item.addEventListener('dragstart', e => { dragSrcIndex = idx; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
-        item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over')); });
-        item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; item.classList.add('drag-over'); });
-        item.addEventListener('dragleave', () => { item.classList.remove('drag-over'); });
-        item.addEventListener('drop', e => {
-            e.preventDefault(); item.classList.remove('drag-over');
-            if (dragSrcIndex === null || dragSrcIndex === idx) return;
-            const boxes = customBoxes[tabId]; if(!boxes)return;
-            const moved = boxes.splice(dragSrcIndex, 1)[0];
-            boxes.splice(idx, 0, moved);
-            localStorage.setItem('custom_boxes', JSON.stringify(customBoxes));
-            dragSrcIndex = null;
-            renderCustomBoxesOnly(tabId);
-        });
-    });
-}
-
-// Fetch box values
 async function fetchCustomBoxValues(tabId) {
-    const apiKey = localStorage.getItem('google_api_key');
-    const boxes = customBoxes[tabId]||[];
-    await Promise.all(boxes.map(async box => {
+    const apiKey=localStorage.getItem('google_api_key'); const boxes=customBoxes[tabId]||[];
+    await Promise.all(boxes.map(async box=>{
         if(!box.sheetId||!box.sheetName||!box.cell){box.value='-';return;}
-        try {
-            const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${box.sheetId}/values/${encodeURIComponent(box.sheetName+'!'+box.cell)}?key=${apiKey}`);
-            if(!r.ok){box.value='Error';return;}
-            const d = await r.json();
-            box.value = (d.values&&d.values[0]&&d.values[0][0]) ? d.values[0][0] : '0';
-        } catch { box.value='Error'; }
+        try { const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${box.sheetId}/values/${encodeURIComponent(box.sheetName+'!'+box.cell)}?key=${apiKey}`); if(!r.ok){box.value='Error';return;} const d=await r.json(); box.value=(d.values&&d.values[0]&&d.values[0][0])?d.values[0][0]:'0'; } catch{box.value='Error';}
     }));
     localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));
 }
-
-// Render custom boxes HTML (reusable for any page)
 function renderCustomBoxesHTML(tabId) {
-    const boxes = customBoxes[tabId]||[];
-    if(boxes.length===0) return '';
-    return `
-    <div class="mb-6">
-        <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold text-sub flex items-center gap-2"><i class="fa-solid fa-box text-indigo-500"></i> กล่องติดตามงานที่เพิ่มเอง <span class="text-xs font-normal">(ลากเพื่อจัดลำดับ)</span></h3>
-        </div>
-        <div id="custom-boxes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${boxes.map((box,idx) => {
-                const c=box.color||'indigo'; const val=box.value!==null?box.value:'...';
-                return `
-                <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden border-l-4 border-l-${c}-500 draggable-box group" data-idx="${idx}">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <span class="text-2xl flex-shrink-0">${box.emoji}</span>
-                            <h4 class="font-bold text-main truncate text-sm">${box.name}</h4>
-                        </div>
-                        <div class="flex gap-1.5">
-                            <button onclick="event.stopPropagation();openEditBox('${tabId}',${idx})" class="text-sub hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" title="แก้ไข"><i class="fa-solid fa-pen text-xs"></i></button>
-                            <button onclick="event.stopPropagation();deleteBoxDirect('${tabId}',${idx})" class="text-sub hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="ลบ"><i class="fa-solid fa-trash text-xs"></i></button>
-                        </div>
-                    </div>
-                    <div class="text-2xl font-bold text-${c}-500 mb-2">${val}</div>
-                    ${box.link ? `<a href="${box.link}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-1 font-medium">เปิดลิงก์ <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px"></i></a>` : ''}
-                    <div class="absolute top-2 right-12 text-sub cursor-grab opacity-0 group-hover:opacity-60"><i class="fa-solid fa-grip-vertical text-xs"></i></div>
-                </div>`;
-            }).join('')}
-        </div>
-    </div>`;
+    const boxes=customBoxes[tabId]||[]; if(boxes.length===0) return '';
+    return `<div class="mb-6"><div class="flex items-center justify-between mb-3"><h3 class="text-sm font-semibold text-sub flex items-center gap-2"><i class="fa-solid fa-box" style="color:var(--primary)"></i> กล่องติดตาม <span class="text-xs font-normal">(ลากจัดลำดับ)</span></h3></div>
+    <div id="custom-boxes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    ${boxes.map((box,idx)=>{const c=box.color||'indigo';const val=box.value!==null?box.value:'...';
+    return `<div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-all relative overflow-hidden border-l-4 border-l-${c}-500 draggable-box group" data-idx="${idx}">
+        <div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2 min-w-0"><span class="text-2xl flex-shrink-0">${box.emoji}</span><h4 class="font-bold text-main truncate text-sm">${box.name}</h4></div>
+        <div class="flex gap-1.5"><button onclick="event.stopPropagation();openEditBox('${tabId}',${idx})" class="text-sub opacity-0 group-hover:opacity-100 transition-all" style="color:var(--primary)"><i class="fa-solid fa-pen text-xs"></i></button>
+        <button onclick="event.stopPropagation();deleteBoxDirect('${tabId}',${idx})" class="text-sub hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><i class="fa-solid fa-trash text-xs"></i></button></div></div>
+        <div class="text-2xl font-bold text-${c}-500 mb-2">${val}</div>
+        ${box.link?`<a href="${box.link}" target="_blank" onclick="event.stopPropagation()" class="text-xs font-medium flex items-center gap-1" style="color:var(--primary)">เปิดลิงก์ <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px"></i></a>`:''}</div>`;}).join('')}</div></div>`;
 }
-function renderCustomBoxesOnly(tabId) {
-    const container = document.getElementById('custom-boxes-section');
-    if(container) { container.innerHTML = renderCustomBoxesHTML(tabId); setupDragAndDrop(tabId); }
+function renderCustomBoxesOnly(tabId) { const c=document.getElementById('custom-boxes-section'); if(c){c.innerHTML=renderCustomBoxesHTML(tabId);setupDragAndDrop(tabId);} }
+
+// ===========================
+// DRAG & DROP
+// ===========================
+function setupDragAndDrop(tabId) {
+    const container=document.getElementById('custom-boxes-grid'); if(!container)return;
+    const items=container.querySelectorAll('.draggable-box');
+    items.forEach((item,idx)=>{
+        item.setAttribute('draggable','true');
+        item.addEventListener('dragstart',e=>{dragSrcIndex=idx;item.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+        item.addEventListener('dragend',()=>{item.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));});
+        item.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';item.classList.add('drag-over');});
+        item.addEventListener('dragleave',()=>{item.classList.remove('drag-over');});
+        item.addEventListener('drop',e=>{e.preventDefault();item.classList.remove('drag-over');if(dragSrcIndex===null||dragSrcIndex===idx)return;const boxes=customBoxes[tabId];if(!boxes)return;const moved=boxes.splice(dragSrcIndex,1)[0];boxes.splice(idx,0,moved);localStorage.setItem('custom_boxes',JSON.stringify(customBoxes));dragSrcIndex=null;renderCustomBoxesOnly(tabId);});
+    });
 }
 
 // ===========================
-// FETCH DATA
+// SIDEBAR
 // ===========================
-async function fetchData(tab=currentTab, forceRefresh=false) {
-    const apiKey = localStorage.getItem('google_api_key'); showSection('loading-section');
+function renderSidebars() { renderProgramLauncher(); renderTodoPreview(); }
+function renderProgramLauncher() {
+    const grid=document.getElementById('program-launcher-grid'); if(!grid) return;
+    grid.innerHTML = PROGRAMS.map(p => `<div class="launcher-btn glass-card p-3 rounded-xl flex flex-col items-center gap-2 cursor-pointer hover-bg transition-all border-l-4 border-l-${p.color}-500" onclick="copyToClipboard('${p.path}')"><span class="text-2xl">${p.emoji}</span><span class="text-[10px] font-bold text-center truncate w-full">${p.name}</span></div>`).join('');
+}
+function renderTodoPreview() {
+    const list=document.getElementById('todo-preview-list'); if(!list) return;
+    const pending=todoItems.filter(t=>t.column!=='finished').slice(0,5);
+    if(pending.length===0){list.innerHTML=`<div class="text-center py-6 border border-dashed rounded-xl" style="border-color:var(--border-dark)"><p class="text-xs text-sub">ไม่มีงานค้าง 🎉</p></div>`;return;}
+    list.innerHTML = pending.map(t => `<div class="flex items-center gap-3 p-3 rounded-xl hover-bg transition-colors group" style="background:rgba(0,0,0,0.1);border:1px solid var(--border-dark)">
+        <div class="w-1.5 h-1.5 rounded-full mt-0.5 ${t.priority==='high'?'bg-red-500':t.priority==='medium'?'bg-amber-500':'bg-emerald-500'}"></div>
+        <div class="min-w-0 flex-1"><p class="text-[11px] font-medium text-main truncate">${t.text}</p><p class="text-[9px] text-sub">${t.priority.toUpperCase()} · ${t.date||''}</p></div></div>`).join('');
+}
+function addMiniTodo() {
+    const el=document.getElementById('mini-todo-input'); const val=el.value.trim(); if(!val) return;
+    todoItems.unshift({text:val,priority:'medium',done:false,date:new Date().toLocaleDateString('th-TH'),category:'',deadline:'',column:'waiting'});
+    localStorage.setItem('todo_items',JSON.stringify(todoItems)); el.value=''; renderSidebars();
+}
+function copyToClipboard(text) { navigator.clipboard.writeText(text); alert('Copied: '+text); }
+
+// ===========================
+// FORCE SYNC ALL
+// ===========================
+async function forceSyncAll() {
+    const icon=document.getElementById('sync-icon'); if(icon)icon.classList.add('animate-spin');
     try {
-        if (['ai','horoscope','others'].includes(tab)) {
-            const labels={ai:'งาน AI',horoscope:'ดูดวง',others:'งานอื่นๆ'}; updateLoadingText(`กำลังดาวน์โหลดข้อมูล${labels[tab]}...`);
-            let sources = tab==='ai'?AI_SOURCES:tab==='horoscope'?HOROSCOPE_SOURCES:OTHERS_SOURCES;
-            let tabData=[];
-            const results = await Promise.all(sources.map(src => {
-                if(src.id==='MOCK_ID') return Promise.resolve({source:src,data:{values:[[Math.floor(Math.random()*50)+5]]}});
-                return fetch(`https://sheets.googleapis.com/v4/spreadsheets/${src.id}/values/${encodeURIComponent(src.sheetName+'!'+src.cell)}?key=${apiKey}`)
-                    .then(r=>{if(!r.ok)throw new Error(`ไม่สามารถดึง ${src.displayName}`);return r.json();}).then(d=>({source:src,data:d}));
-            }));
+        await fetchTonTeeSilent('ton',SPREADSHEET_TON,true);
+        await fetchTonTeeSilent('tee',SPREADSHEET_TEE,false);
+        await fetchHubSilent();
+        if(currentTab==='overview') renderOverviewPage();
+        else if(currentTab==='ton') renderTonPage();
+        else if(currentTab==='tee') renderTeePage();
+        else if(currentTab.startsWith('hub')) renderHubPage(currentTab);
+    } catch(e){}
+    if(icon)icon.classList.remove('animate-spin');
+}
+
+// ===========================
+// FETCH: TON / TEE
+// ===========================
+async function fetchTonTeeData(targetId) {
+    showSection('loading-section');
+    updateLoadingText(`กำลังดึงข้อมูล ${targetId==='ton'?'งานของต้น':'งานของลุงตี่'}...`);
+    try {
+        const sid = targetId==='ton' ? SPREADSHEET_TON : SPREADSHEET_TEE;
+        await fetchTonTeeSilent(targetId, sid, targetId==='ton');
+        if(targetId==='ton') renderTonPage(); else renderTeePage();
+        showSection('dashboard-section');
+    } catch(err) { alert('เกิดข้อผิดพลาด: '+err.message); showSection('dashboard-section'); switchTab('overview'); }
+}
+async function fetchTonTeeSilent(targetId, spreadsheetId, isTon) {
+    const apiKey=localStorage.getItem('google_api_key'); if(!apiKey) return;
+    const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?key=${apiKey}`);
+    if(!meta.ok) throw new Error('API Error: '+meta.status);
+    const metaData=await meta.json(); let names=metaData.sheets.map(s=>s.properties.title); let tabData=[];
+    for(let i=0;i<names.length;i+=15){
+        const ch=names.slice(i,i+15);
+        let rangesQuery;
+        if(isTon){ rangesQuery=ch.map(n=>`ranges=${encodeURIComponent("'"+n+"'!Z2")}`).join('&'); }
+        else{ rangesQuery=ch.map(n=>`ranges=${encodeURIComponent("'"+n+"'!K2")}&ranges=${encodeURIComponent("'"+n+"'!Z2")}`).join('&'); }
+        const bResp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchGet?${rangesQuery}&key=${apiKey}`);
+        if(!bResp.ok) continue; const bData=await bResp.json();
+        for(let j=0;j<ch.length;j++){
+            let ready=0;
+            if(isTon){ const v=bData.valueRanges[j].values||[]; if(v[0]&&v[0][0]) ready=parseFloat(v[0][0].toString().replace(/,/g,''))||0; }
+            else{ const kv=bData.valueRanges[j*2].values||[]; const zv=bData.valueRanges[j*2+1].values||[];
+                const kVal=(kv[0]&&kv[0][0])?kv[0][0].toString().replace(/,/g,'').trim():'';
+                const zVal=(zv[0]&&zv[0][0])?zv[0][0].toString().replace(/,/g,'').trim():'';
+                if(zVal!==''&&!isNaN(Number(zVal))) ready=parseFloat(zVal);
+                else if(kVal!==''&&!isNaN(Number(kVal))) ready=parseFloat(kVal);
+            }
+            tabData.push({title:ch[j],readyCount:ready,sheetId:spreadsheetId});
+        }
+    }
+    sheetsData[targetId]=tabData.sort((a,b)=>b.readyCount-a.readyCount);
+}
+
+// ===========================
+// FETCH: HUB
+// ===========================
+async function fetchHubData(tabId) {
+    showSection('loading-section'); updateLoadingText('กำลังดึงข้อมูลลิงก์เพจ...');
+    try { await fetchHubSilent(); renderHubPage(tabId); showSection('dashboard-section'); }
+    catch(err) { alert('เกิดข้อผิดพลาด: '+err.message); showSection('dashboard-section'); }
+}
+async function fetchHubSilent() {
+    const apiKey=localStorage.getItem('google_api_key'); if(!apiKey) return;
+    const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_HUB}?key=${apiKey}`);
+    if(!meta.ok) throw new Error('API Error: '+meta.status);
+    const metaData=await meta.json(); let names=metaData.sheets.map(s=>s.properties.title); let allLinks=[];
+    for(let i=0;i<names.length;i+=15){
+        const ch=names.slice(i,i+15);
+        const rq=ch.map(n=>`ranges=${encodeURIComponent("'"+n+"'!A2:C")}`).join('&');
+        const bResp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_HUB}/values:batchGet?${rq}&key=${apiKey}`);
+        if(!bResp.ok) continue; const bData=await bResp.json();
+        for(let j=0;j<ch.length;j++){
+            const rows=bData.valueRanges[j].values||[];
+            rows.forEach(r=>{const title=r[0]?r[0].toString().trim():'';const link=r[1]?r[1].toString().trim():'';const plan=r[2]?r[2].toString().trim():'';if(title)allLinks.push({title,link,plan,category:ch[j]});});
+        }
+    }
+    sheetsData.hub=allLinks;
+}
+
+// ===========================
+// FETCH: SHEETS (main/youtube/yok/ai/horoscope/others)
+// ===========================
+async function fetchData(tab) {
+    const apiKey=localStorage.getItem('google_api_key'); showSection('loading-section');
+    try {
+        if(['ai','horoscope','others'].includes(tab)){
+            updateLoadingText('กำลังดาวน์โหลดข้อมูล...');
+            let sources=tab==='ai'?AI_SOURCES:tab==='horoscope'?HOROSCOPE_SOURCES:OTHERS_SOURCES; let tabData=[];
+            const results=await Promise.all(sources.map(src=>{if(src.id==='MOCK_ID')return Promise.resolve({source:src,data:{values:[[Math.floor(Math.random()*50)+5]]}});return fetch(`https://sheets.googleapis.com/v4/spreadsheets/${src.id}/values/${encodeURIComponent(src.sheetName+'!'+src.cell)}?key=${apiKey}`).then(r=>{if(!r.ok)throw new Error('err');return r.json();}).then(d=>({source:src,data:d}));}));
             results.forEach(r=>{let v=0;if(r.data.values&&r.data.values[0]&&r.data.values[0][0])v=parseInt(r.data.values[0][0].toString().replace(/,/g,''),10)||0;tabData.push({title:r.source.displayName,readyCount:v,waitingCount:0,link:r.source.link});});
             sheetsData[tab]=tabData; renderSheetsPage(tab); showSection('dashboard-section'); return;
         }
-        const sheetLabels={main:'บทความ / โพสต์',youtube:'Youtube',yok:'หยก'}; updateLoadingText(`กำลังตรวจสอบชีท (${sheetLabels[tab]})...`);
-        const sheetId=SPREADSHEETS[tab]; const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`);
-        if(!meta.ok)throw new Error(`API Error: ${meta.status}`); const metaData=await meta.json();
+        const sheetId=SPREADSHEETS[tab]; updateLoadingText('กำลังตรวจสอบชีท...');
+        const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`);
+        if(!meta.ok)throw new Error('API Error: '+meta.status); const metaData=await meta.json();
         let names=metaData.sheets.map(s=>s.properties.title);
         if(tab==='yok')names=names.filter(n=>n.includes('ClickBait')||n.toLowerCase().includes('info'));
-        let tabData=[]; const chunk=15;
-        for(let i=0;i<names.length;i+=chunk){
-            const ch=names.slice(i,i+chunk); updateLoadingText(`ดาวน์โหลดชุดที่ ${Math.floor(i/chunk)+1}/${Math.ceil(names.length/chunk)}...`,`ชีท ${i+1}-${Math.min(i+chunk,names.length)}`);
+        let tabData=[];
+        for(let i=0;i<names.length;i+=15){
+            const ch=names.slice(i,i+15); updateLoadingText(`ดาวน์โหลดชุดที่ ${Math.floor(i/15)+1}/${Math.ceil(names.length/15)}...`);
             const ranges=ch.map(n=>{if(tab==='main')return `ranges=${encodeURIComponent(n+'!F:F')}&ranges=${encodeURIComponent(n+'!K2')}`;if(tab==='youtube')return `ranges=${encodeURIComponent(n+'!P2')}`;if(tab==='yok'){const c=n.includes('ClickBait')?'H2':'M2';return `ranges=${encodeURIComponent(n+'!'+c)}`;}}).join('&');
             const bResp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?${ranges}&key=${apiKey}`);
-            if(!bResp.ok)throw new Error(`Batch Error: ${bResp.status}`); const bData=await bResp.json();
+            if(!bResp.ok) continue; const bData=await bResp.json();
             for(let j=0;j<ch.length;j++){let ready=0,waiting=0;
                 if(tab==='main'){const colF=bData.valueRanges[j*2].values||[];const colK=bData.valueRanges[j*2+1].values||[];colF.forEach(r=>{if(r[0]&&r[0].toString().trim().toUpperCase()==='N')waiting++;});if(colK[0]&&colK[0][0])ready=parseInt(colK[0][0].toString().replace(/,/g,''),10)||0;}
                 else{const d=bData.valueRanges[j].values||[];if(d[0]&&d[0][0])ready=parseInt(d[0][0].toString().replace(/,/g,''),10)||0;}
@@ -536,12 +690,7 @@ async function fetchData(tab=currentTab, forceRefresh=false) {
             }
         }
         sheetsData[tab]=tabData; renderSheetsPage(tab); showSection('dashboard-section');
-    } catch(e){ console.error(e); alert(`เกิดข้อผิดพลาด: ${e.message}`); showSection('login-section'); }
-}
-
-async function loadAllData() {
-    const apiKey=localStorage.getItem('google_api_key'); if(!apiKey)return;
-    await Promise.all(['main','youtube','yok','ai','horoscope'].map(async t=>{if(!sheetsData[t])try{await fetchDataSilent(t);}catch(e){console.error(e);}}));
+    } catch(e){console.error(e);alert('เกิดข้อผิดพลาด: '+e.message);showSection('dashboard-section');}
 }
 async function fetchDataSilent(tab) {
     const apiKey=localStorage.getItem('google_api_key');
@@ -551,13 +700,21 @@ async function fetchDataSilent(tab) {
         sheetsData[tab]=tabData;return;}
     const sheetId=SPREADSHEETS[tab];const meta=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`);if(!meta.ok)return;const metaData=await meta.json();
     let names=metaData.sheets.map(s=>s.properties.title);if(tab==='yok')names=names.filter(n=>n.includes('ClickBait')||n.toLowerCase().includes('info'));
-    let tabData=[];const chunk=15;
-    for(let i=0;i<names.length;i+=chunk){const ch=names.slice(i,i+chunk);
+    let tabData=[];
+    for(let i=0;i<names.length;i+=15){const ch=names.slice(i,i+15);
         const ranges=ch.map(n=>{if(tab==='main')return `ranges=${encodeURIComponent(n+'!F:F')}&ranges=${encodeURIComponent(n+'!K2')}`;if(tab==='youtube')return `ranges=${encodeURIComponent(n+'!P2')}`;if(tab==='yok'){const c=n.includes('ClickBait')?'H2':'M2';return `ranges=${encodeURIComponent(n+'!'+c)}`;}}).join('&');
         const bResp=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?${ranges}&key=${apiKey}`);if(!bResp.ok)continue;const bData=await bResp.json();
         for(let j=0;j<ch.length;j++){let ready=0,waiting=0;if(tab==='main'){const colF=bData.valueRanges[j*2].values||[];const colK=bData.valueRanges[j*2+1].values||[];colF.forEach(r=>{if(r[0]&&r[0].toString().trim().toUpperCase()==='N')waiting++;});if(colK[0]&&colK[0][0])ready=parseInt(colK[0][0].toString().replace(/,/g,''),10)||0;}else{const d=bData.valueRanges[j].values||[];if(d[0]&&d[0][0])ready=parseInt(d[0][0].toString().replace(/,/g,''),10)||0;}tabData.push({title:ch[j],readyCount:ready,waitingCount:waiting,sheetId});}
     }
     sheetsData[tab]=tabData;
+}
+async function loadAllData() {
+    const apiKey=localStorage.getItem('google_api_key'); if(!apiKey)return;
+    let promises=[];
+    if(!sheetsData.ton)promises.push(fetchTonTeeSilent('ton',SPREADSHEET_TON,true).catch(e=>{}));
+    if(!sheetsData.tee)promises.push(fetchTonTeeSilent('tee',SPREADSHEET_TEE,false).catch(e=>{}));
+    await Promise.all(['main','youtube','yok','ai','horoscope'].map(async t=>{if(!sheetsData[t])try{await fetchDataSilent(t);}catch(e){}}));
+    await Promise.all(promises);
 }
 
 // ===========================
@@ -565,264 +722,314 @@ async function fetchDataSilent(tab) {
 // ===========================
 async function renderOverviewPage() {
     const content=document.getElementById('tab-content');
-    content.innerHTML=`<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent mb-3"></div><p class="text-sub">กำลังโหลดข้อมูลภาพรวม...</p></div>`;
+    content.innerHTML=`<div class="text-center py-20"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-t-transparent mb-4" style="border-color:var(--primary);border-top-color:transparent;"></div><p class="text-sub">กำลังโหลดข้อมูลภาพรวม...</p></div>`;
     await loadAllData();
-    const tabs=['main','youtube','yok','ai','horoscope'];
+    if(customBoxes['overview']) await fetchCustomBoxValues('overview');
+
+    const tonData=sheetsData.ton||[]; const teeData=sheetsData.tee||[];
+    const totalTon=tonData.reduce((s,i)=>s+i.readyCount,0); const totalTee=teeData.reduce((s,i)=>s+i.readyCount,0);
+
+    const tabs2=['main','youtube','yok','ai','horoscope'];
     const tabNames={main:'📝 บทความ/โพสต์',youtube:'🎬 Youtube',yok:'💎 หยก',ai:'🤖 AI',horoscope:'⭐ ดูดวง'};
     const tabColors={main:'indigo',youtube:'red',yok:'emerald',ai:'purple',horoscope:'pink'};
     let totalStock=0,totalWaiting=0;let tabSummaries=[];
-    tabs.forEach(t=>{const d=sheetsData[t];if(!d)return;const ready=d.reduce((s,i)=>s+i.readyCount,0);const waiting=d.reduce((s,i)=>s+i.waitingCount,0);totalStock+=ready;totalWaiting+=waiting;tabSummaries.push({id:t,name:tabNames[t],color:tabColors[t],ready,waiting,count:d.length});});
-    let lowStockItems=[];tabs.forEach(t=>{const d=sheetsData[t];if(!d)return;d.forEach(item=>{if(item.readyCount<=3)lowStockItems.push({...item,tab:t,tabName:tabNames[t]});});});lowStockItems.sort((a,b)=>a.readyCount-b.readyCount);
-    const todoCount=todoItems.filter(t=>!t.done).length;const todoDone=todoItems.filter(t=>t.done).length;
-    // Also fetch custom boxes for overview
-    if(customBoxes['overview']) await fetchCustomBoxValues('overview');
+    tabs2.forEach(t=>{const d=sheetsData[t];if(!d)return;const ready=d.reduce((s,i)=>s+i.readyCount,0);const waiting=d.reduce((s,i)=>s+i.waitingCount,0);totalStock+=ready;totalWaiting+=waiting;tabSummaries.push({id:t,name:tabNames[t],color:tabColors[t],ready,waiting,count:d.length});});
+
+    const rootStyle=getComputedStyle(document.body);
+    const textColor=rootStyle.getPropertyValue('--text-main').trim()||'#f8fafc';
+    const gridColor=rootStyle.getPropertyValue('--border-dark').trim()||'rgba(255,255,255,0.05)';
 
     content.innerHTML=`
-    <div class="fade-in">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <h1 class="text-2xl font-bold text-main">📊 Dashboard ภาพรวม</h1>
-            <div class="flex gap-2">
-                <button onclick="openModal('modal-create-box')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
-                <button onclick="sheetsData={main:null,youtube:null,yok:null,ai:null,horoscope:null,others:null};renderOverviewPage()" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button>
-        
-            </div>
-        </div>
+    <div class="fade-in space-y-10">
         ${renderNoteBox('overview')}
         <div id="custom-boxes-section">${renderCustomBoxesHTML('overview')}</div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-indigo-500"><p class="text-sub text-xs font-medium">Stock ทั้งหมด</p><h2 class="text-3xl font-bold text-main mt-1">${totalStock.toLocaleString()}</h2></div>
-            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-amber-500"><p class="text-sub text-xs font-medium">รอสร้างทั้งหมด</p><h2 class="text-3xl font-bold text-main mt-1">${totalWaiting.toLocaleString()}</h2></div>
-            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-red-500"><p class="text-sub text-xs font-medium">Stock ต่ำ (≤3)</p><h2 class="text-3xl font-bold text-main mt-1">${lowStockItems.length}</h2></div>
-            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-emerald-500"><p class="text-sub text-xs font-medium">Todo ที่เหลือ</p><h2 class="text-3xl font-bold text-main mt-1">${todoCount} <span class="text-sm font-normal text-sub">/ ${todoCount+todoDone}</span></h2></div>
+
+        <!-- Ton & Tee Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <p class="text-sub text-xs font-bold uppercase tracking-wider">🧑‍🚀 Ton's Total Stock</p>
+                <h2 class="text-4xl font-extrabold text-main mt-2 group-hover:scale-105 transition-transform origin-left">${totalTon.toLocaleString()}</h2>
+            </div>
+            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                <p class="text-sub text-xs font-bold uppercase tracking-wider">👔 Tee's Total Stock</p>
+                <h2 class="text-4xl font-extrabold text-main mt-2 group-hover:scale-105 transition-transform origin-left">${totalTee.toLocaleString()}</h2>
+            </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass-card rounded-2xl p-6"><h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-chart-bar" style="color:var(--primary)"></i> Stock งานของต้น</h2><div class="h-[350px] w-full"><canvas id="tonChart"></canvas></div></div>
+            <div class="glass-card rounded-2xl p-6"><h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-chart-bar text-sky-400"></i> Stock งานลุงตี่</h2><div class="h-[350px] w-full"><canvas id="teeChart"></canvas></div></div>
+        </div>
+
+        <!-- Category Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-indigo-500 relative overflow-hidden"><p class="text-sub text-xs font-medium uppercase">Stock รวมหมวด</p><h2 class="text-3xl font-bold text-main mt-1">${totalStock.toLocaleString()}</h2></div>
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-amber-500 relative overflow-hidden"><p class="text-sub text-xs font-medium uppercase">รอสร้างทั้งหมด</p><h2 class="text-3xl font-bold text-main mt-1">${totalWaiting.toLocaleString()}</h2></div>
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-rose-500 relative overflow-hidden"><p class="text-sub text-xs font-medium uppercase">Tasks: กำลังทำ</p><h2 class="text-3xl font-bold text-main mt-1">${todoItems.filter(t=>t.column==='processing').length}</h2></div>
+            <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle border-l-4 border-l-emerald-500 relative overflow-hidden"><p class="text-sub text-xs font-medium uppercase">Tasks: เสร็จแล้ว</p><h2 class="text-3xl font-bold text-main mt-1">${todoItems.filter(t=>t.column==='finished').length}</h2></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             ${tabSummaries.map(t=>`
             <div class="card-bg rounded-2xl shadow-sm p-5 border border-subtle cursor-pointer hover-bg transition-colors" onclick="switchTab('${t.id}')">
                 <div class="flex justify-between items-center mb-3"><h3 class="font-semibold text-main text-sm">${t.name}</h3><span class="text-xs text-sub">${t.count} รายการ</span></div>
                 <div class="flex items-end gap-4"><div><p class="text-xs text-sub">Stock</p><p class="text-2xl font-bold text-${t.color}-500">${t.ready.toLocaleString()}</p></div>${t.waiting>0?`<div><p class="text-xs text-sub">รอสร้าง</p><p class="text-lg font-bold text-amber-500">${t.waiting}</p></div>`:''}</div>
-                <div class="mt-3 w-full rounded-full h-2" style="background:${isDark?'#334155':'#e5e7eb'}"><div class="stock-bar bg-${t.color}-500" style="width:${Math.min(100,(t.ready/Math.max(t.ready+t.waiting,1))*100)}%"></div></div>
             </div>`).join('')}
         </div>
-        ${lowStockItems.length>0?`
-        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle border-l-4 border-l-red-500 mb-8">
-            <h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i> Stock ต่ำ - ควรเติมด่วน!</h2>
-            <div class="space-y-2 max-h-64 overflow-y-auto">${lowStockItems.slice(0,15).map(item=>`
-                <div class="flex items-center justify-between py-2 px-3 rounded-lg hover-bg transition-colors">
-                    <div class="flex items-center gap-3"><span class="inline-block w-2 h-2 rounded-full ${item.readyCount===0?'bg-red-500':'bg-amber-500'}"></span><span class="text-sm text-main font-medium">${item.title}</span><span class="text-xs text-sub">${item.tabName}</span></div>
-                    <span class="text-sm font-bold ${item.readyCount===0?'text-red-500':'text-amber-500'}">${item.readyCount} ชิ้น</span>
-                </div>`).join('')}</div>
-        </div>`:''}
-        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle"><h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-chart-bar text-indigo-500 mr-2"></i> Stock แยกตามหมวด</h2><div class="relative h-72 w-full"><canvas id="overviewChart"></canvas></div></div>
+        <div class="flex gap-2">
+            <button onclick="openModal('modal-create-box')" class="text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1" style="background-color:var(--primary)"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
+            <button onclick="sheetsData={ton:null,tee:null,hub:null,main:null,youtube:null,yok:null,ai:null,horoscope:null,others:null};renderOverviewPage()" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button>
+        </div>
     </div>`;
     setupDragAndDrop('overview');
-    // Chart
-    const ctx=document.getElementById('overviewChart').getContext('2d');if(chartInstance)chartInstance.destroy();
-    const cMap={indigo:[79,70,229],red:[220,38,38],emerald:[16,185,129],purple:[168,85,247],pink:[236,72,153]};
-    chartInstance=new Chart(ctx,{type:'bar',data:{labels:tabSummaries.map(t=>t.name),datasets:[{label:'Stock',data:tabSummaries.map(t=>t.ready),backgroundColor:tabSummaries.map(t=>{const c=cMap[t.color];return `rgba(${c[0]},${c[1]},${c[2]},0.7)`;}),borderColor:tabSummaries.map(t=>{const c=cMap[t.color];return `rgb(${c[0]},${c[1]},${c[2]})`;}),borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:isDark?'#334155':'#f3f4f6'}},x:{grid:{display:false}}}}});
+    setTimeout(()=>{renderBarChart('tonChart',tonData,textColor,gridColor);renderBarChart('teeChart',teeData,textColor,gridColor);},150);
 }
+
+function renderBarChart(canvasId, dataArr, textColor, gridColor) {
+    if(chartInstances[canvasId]) chartInstances[canvasId].destroy();
+    const ctx=document.getElementById(canvasId); if(!ctx) return;
+    const cData=[...dataArr].sort((a,b)=>b.readyCount-a.readyCount);
+    Chart.defaults.color=textColor; Chart.defaults.font.family="'Outfit','Prompt',sans-serif";
+    chartInstances[canvasId]=new Chart(ctx.getContext('2d'),{type:'bar',data:{labels:cData.map(d=>d.title),datasets:[{label:'Stock',data:cData.map(d=>d.readyCount),backgroundColor:cData.map(v=>v.readyCount>=100?'rgba(16,185,129,0.9)':'rgba(245,158,11,0.9)'),borderRadius:4,barThickness:'flex',maxBarThickness:32}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridColor},border:{display:false}},y:{grid:{display:false},border:{display:false},ticks:{font:{size:12},color:textColor}}},animation:{duration:1200,easing:'easeOutQuart'}}});
+}
+
+// ===========================
+// RENDER: TON / TEE PAGES
+// ===========================
+function renderTonPage() { renderPersonCards(sheetsData.ton||[],'งานของต้น','fa-user-astronaut',SPREADSHEET_TON); }
+function renderTeePage() { renderPersonCards(sheetsData.tee||[],'งานของลุงตี่','fa-user-tie',SPREADSHEET_TEE); }
+function renderPersonCards(data,title,icon,sid) {
+    const content=document.getElementById('tab-content');
+    content.innerHTML=`<div class="fade-in">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4">
+            <div><h1 class="text-2xl font-bold text-main flex items-center gap-3"><i class="fa-solid ${icon}" style="color:var(--primary)"></i> ${title}</h1><p class="text-sub text-sm mt-1">ติดตาม Stock ชีทที่เชื่อมต่อ</p></div>
+            <div class="relative w-full sm:w-72"><i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sub"></i><input type="text" id="card-search" onkeyup="filterCards()" placeholder="ค้นหางาน..." class="w-full pl-11 pr-4 py-2.5 rounded-xl input-bg text-sm"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 search-container">
+            ${data.map(sheet=>{
+                const sc=sheet.readyCount>=100?'emerald':(sheet.readyCount===0?'rose':'amber');
+                return `<div class="glass-card rounded-2xl p-5 relative group data-card transition-all hover:-translate-y-1">
+                    <div class="absolute top-0 right-0 w-1.5 h-full rounded-r-2xl bg-${sc}-500 opacity-80"></div>
+                    <h3 class="font-bold text-base text-main truncate mb-4 pr-2 card-title" title="${sheet.title}">${sheet.title}</h3>
+                    <div class="rounded-xl p-4 border mb-5 text-center" style="background:rgba(0,0,0,0.15);border-color:var(--border-dark)">
+                        <span class="text-[11px] text-sub uppercase font-bold tracking-wider">Stock Available</span><br>
+                        <span class="text-4xl font-extrabold text-${sc}-400">${sheet.readyCount}</span>
+                    </div>
+                    <a href="https://docs.google.com/spreadsheets/d/${sid}/edit" target="_blank" class="w-full py-2.5 rounded-lg text-xs text-center block text-sub hover:text-main transition-colors border font-bold" style="background:rgba(255,255,255,0.03);border-color:var(--border-dark)"><i class="fa-solid fa-table mr-1"></i> เปิดชีทงาน</a>
+                </div>`;
+            }).join('')}
+        </div></div>`;
+}
+function filterCards() { const q=document.getElementById('card-search').value.toLowerCase(); document.querySelectorAll('.data-card').forEach(card=>{card.style.display=card.querySelector('.card-title').innerText.toLowerCase().includes(q)?'block':'none';}); }
+
+// ===========================
+// RENDER: HUB PAGES
+// ===========================
+function renderHubPage(targetId) {
+    const isTon=targetId==='hub-ton'; const keyword=isTon?'ต้น':'ตี่';
+    let data=(sheetsData.hub||[]).filter(item=>item.category.includes(keyword));
+    const pageTitle=isTon?'รวมLinkเพจของต้น':'รวมLinkเพจของพี่ตี่';
+    const iconColor=isTon?'var(--primary)':'#38bdf8';
+    const content=document.getElementById('tab-content');
+    content.innerHTML=`<div class="fade-in">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+            <div><h1 class="text-2xl font-bold text-main flex items-center gap-3"><i class="fa-solid fa-link" style="color:${iconColor}"></i> ${pageTitle}</h1></div>
+            <div class="relative w-full sm:w-72"><i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sub"></i><input type="text" id="hub-search" onkeyup="filterHubCards()" placeholder="ค้นหาชื่อเพจ..." class="w-full pl-11 pr-4 py-2.5 rounded-xl input-bg text-sm"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${data.map(item=>`<div class="glass-card rounded-2xl p-6 relative group hub-card transition-all hover:-translate-y-1 flex flex-col h-full">
+                <div class="flex-1">
+                    <span class="text-[10px] text-sub uppercase font-bold tracking-wider mb-2 inline-block px-2 py-1 rounded-md border" style="background:rgba(0,0,0,0.15);border-color:var(--border-dark)">${item.category}</span>
+                    <h3 class="font-bold text-xl text-main mb-4 hub-title leading-tight">${item.title}</h3>
+                    <div class="rounded-xl p-4 border mb-6" style="background:rgba(0,0,0,0.15);border-color:var(--border-dark)">
+                        <h4 class="text-[10px] text-sub uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5"><i class="fa-solid fa-clipboard-list" style="color:${iconColor}"></i> แผนงาน</h4>
+                        <p class="text-sm text-main break-words font-medium hub-plan leading-relaxed">${item.plan||'- ไม่มีแผนงาน -'}</p>
+                    </div>
+                </div>
+                <a href="${item.link||'#'}" target="${item.link?'_blank':'_self'}" class="w-full py-3 rounded-lg text-white text-sm text-center block transition-colors font-bold shadow-lg ${!item.link?'opacity-50 cursor-not-allowed pointer-events-none':''}" style="background-color:${iconColor}"><i class="fa-solid fa-up-right-from-square mr-1"></i> ไปที่ลิงก์</a>
+            </div>`).join('')}
+            ${data.length===0?`<div class="col-span-full text-center py-24 text-sub italic glass-card rounded-2xl">ไม่พบข้อมูล...</div>`:''}
+        </div></div>`;
+}
+function filterHubCards() { const q=document.getElementById('hub-search').value.toLowerCase(); document.querySelectorAll('.hub-card').forEach(card=>{const t=card.querySelector('.hub-title').innerText.toLowerCase();const p=card.querySelector('.hub-plan').innerText.toLowerCase();card.style.display=(t.includes(q)||p.includes(q))?'flex':'none';}); }
+
+// ===========================
+// RENDER: SHEETS PAGE
+// ===========================
+async function renderSheetsPage(tab) {
+    let data=sheetsData[tab]; if(!data)return;
+    const hiddenCards=JSON.parse(localStorage.getItem('hidden_cards')||'{}');
+    const hiddenList=hiddenCards[tab]||[];
+    data=data.filter(s=>!hiddenList.includes(s.title));
+    const totalReady=data.reduce((s,i)=>s+i.readyCount,0);const totalWaiting=data.reduce((s,i)=>s+i.waitingCount,0);const showWaiting=tab==='main';
+    const colorMap={main:'indigo',youtube:'red',yok:'emerald',ai:'purple',horoscope:'pink',others:'slate'};const color=colorMap[tab]||'indigo';
+    if(customBoxes[tab]) await fetchCustomBoxValues(tab);
+    const content=document.getElementById('tab-content');
+    content.innerHTML=`<div class="fade-in">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h1 class="text-2xl font-bold text-main">${tab}</h1>
+            <div class="flex gap-2">
+                <button onclick="openModal('modal-create-box')" class="text-white px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-1" style="background-color:var(--primary)"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
+                <button onclick="sheetsData['${tab}']=null;fetchData('${tab}')" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> อัปเดต</button>
+            </div>
+        </div>
+        ${renderNoteBox(tab)}
+        <div id="custom-boxes-section">${renderCustomBoxesHTML(tab)}</div>
+        <div class="grid ${showWaiting?'grid-cols-1 md:grid-cols-2':'grid-cols-1'} gap-6 mb-8">
+            <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle flex items-center gap-4 border-l-4 border-l-emerald-500"><div class="bg-emerald-500/20 p-4 rounded-xl text-emerald-400 text-2xl"><i class="fa-solid fa-boxes-stacked"></i></div><div><p class="text-sm text-sub">รวม Stock</p><h2 class="text-3xl font-bold text-main">${totalReady.toLocaleString()}</h2></div></div>
+            ${showWaiting?`<div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle flex items-center gap-4 border-l-4 border-l-amber-500"><div class="bg-amber-500/20 p-4 rounded-xl text-amber-400 text-2xl"><i class="fa-solid fa-hourglass-half"></i></div><div><p class="text-sm text-sub">รอสร้าง</p><h2 class="text-3xl font-bold text-main">${totalWaiting.toLocaleString()}</h2></div></div>`:''}
+        </div>
+        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle mb-8"><h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-ranking-star text-yellow-500 mr-2"></i>Top 10 Stock</h2><div class="relative h-72 w-full"><canvas id="sheetChart"></canvas></div></div>
+        <div class="mb-6 relative"><i class="fa-solid fa-search absolute left-4 top-3.5 text-sub"></i><input type="text" id="sheet-search" onkeyup="filterSheetCards()" placeholder="ค้นหาชื่องาน..." class="w-full pl-11 pr-4 py-3 rounded-xl input-bg shadow-sm text-sm"></div>
+        <div id="sheets-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>`;
+    setupDragAndDrop(tab);
+    // Chart
+    const sortedTop=[...data].sort((a,b)=>b.readyCount-a.readyCount).slice(0,10);
+    const ctx=document.getElementById('sheetChart'); if(ctx){
+        if(chartInstance)chartInstance.destroy();
+        const rs=getComputedStyle(document.body);const tc=rs.getPropertyValue('--text-main').trim();const gc=rs.getPropertyValue('--border-dark').trim();
+        chartInstance=new Chart(ctx.getContext('2d'),{type:'bar',data:{labels:sortedTop.map(i=>i.title),datasets:[{label:'Stock',data:sortedTop.map(i=>i.readyCount),backgroundColor:`rgba(99,102,241,0.6)`,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:gc}},x:{grid:{display:false},ticks:{callback:function(v){const l=this.getLabelForValue(v);return l.length>15?l.substr(0,15)+'...':l;}}}}}});
+    }
+    // Cards
+    const grid=document.getElementById('sheets-cards-grid');
+    data.forEach(sheet=>{
+        const hasReady=sheet.readyCount>0;const sc=hasReady?'emerald':'rose';
+        const url=sheet.link||`https://docs.google.com/spreadsheets/d/${sheet.sheetId}/edit`;
+        grid.innerHTML+=`<div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group sheet-card">
+            ${hasReady?`<div class="absolute top-0 right-0 w-2 h-full bg-${color}-500"></div>`:''}
+            <div class="flex justify-between items-start mb-4"><h3 class="font-bold text-lg text-main truncate sheet-title pr-4">${sheet.title}</h3>
+            <button onclick="event.stopPropagation();deleteSheetCard('${tab}','${sheet.title.replace(/'/g,"\\'")}')" class="text-sub hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-trash"></i></button></div>
+            <div><div class="flex justify-between items-center"><div><span class="text-sm text-sub">Stock</span><br><span class="text-2xl font-bold text-${color}-500">${sheet.readyCount}</span></div><div><span class="px-2.5 py-1 text-xs font-semibold rounded-full ${hasReady?'bg-emerald-500/20 text-emerald-400':'text-sub'}">${hasReady?'มี Stock':'ไม่มี Stock'}</span></div></div>
+            ${tab==='main'&&sheet.waitingCount>0?`<div class="flex justify-between items-center mt-3 pt-3 border-t border-subtle"><div><span class="text-sm text-sub">รอสร้าง</span><br><span class="text-2xl font-bold text-amber-500">${sheet.waitingCount}</span></div></div>`:''}</div>
+            <div class="mt-5 pt-3 border-t border-subtle"><a href="${url}" target="_blank" class="text-sm flex items-center gap-1 font-medium transition-colors" style="color:var(--primary)">เปิดใน Sheets <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i></a></div>
+        </div>`;
+    });
+}
+function filterSheetCards(){const q=document.getElementById('sheet-search').value.toLowerCase();document.querySelectorAll('.sheet-card').forEach(c=>{c.style.display=c.querySelector('.sheet-title').innerText.toLowerCase().includes(q)?'block':'none';});}
+function deleteSheetCard(tab,title){if(!confirm('ลบกล่อง "'+title+'"?'))return;let h=JSON.parse(localStorage.getItem('hidden_cards')||'{}');if(!h[tab])h[tab]=[];h[tab].push(title);localStorage.setItem('hidden_cards',JSON.stringify(h));renderSheetsPage(tab);}
 
 // ===========================
 // RENDER: STOCK CHECK
 // ===========================
 async function renderStockCheckPage() {
     const content=document.getElementById('tab-content');
-    content.innerHTML=`<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent mb-3"></div><p class="text-sub">กำลังตรวจสอบ Stock...</p></div>`;
+    content.innerHTML=`<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-t-transparent mb-3" style="border-color:var(--primary);border-top-color:transparent;"></div><p class="text-sub">กำลังตรวจสอบ Stock...</p></div>`;
     await loadAllData();
-    const tabs=['main','youtube','yok','ai','horoscope'];
-    const tabNames={main:'📝 บทความ/โพสต์',youtube:'🎬 Youtube',yok:'💎 หยก',ai:'🤖 AI',horoscope:'⭐ ดูดวง'};
-    let allItems=[];tabs.forEach(t=>{const d=sheetsData[t];if(!d)return;d.forEach(item=>allItems.push({...item,tab:t,tabName:tabNames[t]}));});
+    const tabs2=['main','youtube','yok','ai','horoscope'];
+    const tabNames={main:'📝 บทความ',youtube:'🎬 Youtube',yok:'💎 หยก',ai:'🤖 AI',horoscope:'⭐ ดูดวง'};
+    let allItems=[];tabs2.forEach(t=>{const d=sheetsData[t];if(!d)return;d.forEach(item=>allItems.push({...item,tab:t,tabName:tabNames[t]}));});
     const zeroStock=allItems.filter(i=>i.readyCount===0);const lowStock=allItems.filter(i=>i.readyCount>0&&i.readyCount<=5);
-    const medStock=allItems.filter(i=>i.readyCount>5&&i.readyCount<=15);const highWaiting=allItems.filter(i=>i.waitingCount>5).sort((a,b)=>b.waitingCount-a.waitingCount);
-    const rg=(items,title,icon,cc,bc)=>{if(items.length===0)return '';return `
-        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle ${bc} mb-6"><h2 class="text-lg font-bold text-main mb-4"><i class="${icon} ${cc} mr-2"></i>${title} <span class="text-sm font-normal text-sub">(${items.length})</span></h2>
-        <div class="space-y-2 max-h-80 overflow-y-auto">${items.map(item=>{const url=item.link||`https://docs.google.com/spreadsheets/d/${item.sheetId}/edit`;return `
-            <div class="flex items-center justify-between py-2.5 px-4 rounded-lg hover-bg transition-colors border border-subtle"><div class="flex-1 min-w-0"><span class="text-sm text-main font-medium truncate block">${item.title}</span><span class="text-xs text-sub">${item.tabName}</span></div>
-            <div class="flex items-center gap-3 ml-3"><span class="text-sm font-bold ${item.readyCount===0?'text-red-500':item.readyCount<=5?'text-amber-500':'text-emerald-500'}">Stock: ${item.readyCount}</span>${item.waitingCount>0?`<span class="text-xs text-amber-500">รอ: ${item.waitingCount}</span>`:''}<a href="${url}" target="_blank" class="text-indigo-500 hover:text-indigo-700"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a></div></div>`;}).join('')}</div></div>`;};
-    content.innerHTML=`
-    <div class="fade-in">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <div><h1 class="text-2xl font-bold text-main">🔍 ตรวจ Stock - ควรทำอะไรบ้าง?</h1><p class="text-sub text-sm mt-1">ตรวจสอบงานที่เหลือน้อย ควรเอามาทำต่อ</p></div>
-            <button onclick="renderStockCheckPage()" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button>
-        </div>
+    const rg=(items,title,icon,cc,bc)=>{if(items.length===0)return '';return `<div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle ${bc} mb-6"><h2 class="text-lg font-bold text-main mb-4"><i class="${icon} ${cc} mr-2"></i>${title} <span class="text-sm font-normal text-sub">(${items.length})</span></h2>
+        <div class="space-y-2 max-h-80 overflow-y-auto">${items.map(item=>{const url=item.link||`https://docs.google.com/spreadsheets/d/${item.sheetId}/edit`;return `<div class="flex items-center justify-between py-2.5 px-4 rounded-lg hover-bg transition-colors border border-subtle"><div class="flex-1 min-w-0"><span class="text-sm text-main font-medium truncate block">${item.title}</span><span class="text-xs text-sub">${item.tabName}</span></div>
+            <div class="flex items-center gap-3 ml-3"><span class="text-sm font-bold ${item.readyCount===0?'text-red-500':'text-amber-500'}">Stock: ${item.readyCount}</span><a href="${url}" target="_blank" style="color:var(--primary)"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></a></div></div>`;}).join('')}</div></div>`;};
+    content.innerHTML=`<div class="fade-in">
+        <div class="flex justify-between items-center mb-6"><div><h1 class="text-2xl font-bold text-main">🔍 ตรวจ Stock</h1><p class="text-sub text-sm mt-1">งานที่เหลือน้อยควรทำเพิ่ม</p></div>
+        <button onclick="renderStockCheckPage()" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button></div>
         ${renderNoteBox('stockcheck')}
-        <div class="grid grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-2 gap-4 mb-8">
             <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle text-center border-t-4 border-t-red-500"><p class="text-3xl font-bold text-red-500">${zeroStock.length}</p><p class="text-xs text-sub mt-1">หมด Stock</p></div>
             <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle text-center border-t-4 border-t-amber-500"><p class="text-3xl font-bold text-amber-500">${lowStock.length}</p><p class="text-xs text-sub mt-1">Stock ต่ำ (1-5)</p></div>
-            <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle text-center border-t-4 border-t-sky-500"><p class="text-3xl font-bold text-sky-500">${medStock.length}</p><p class="text-xs text-sub mt-1">Stock ปานกลาง (6-15)</p></div>
         </div>
-        ${rg(zeroStock,'หมด Stock แล้ว! ต้องทำด่วน','fa-solid fa-circle-exclamation','text-red-500','border-l-4 border-l-red-500')}
-        ${rg(lowStock,'Stock เหลือน้อย (1-5) ควรเตรียม','fa-solid fa-triangle-exclamation','text-amber-500','border-l-4 border-l-amber-500')}
-        ${rg(highWaiting,'ค้างรอสร้างเยอะ ควรเคลียร์','fa-solid fa-hourglass-half','text-orange-500','border-l-4 border-l-orange-500')}
-        ${rg(medStock,'Stock ปานกลาง (6-15) ยังพอไหว','fa-solid fa-info-circle','text-sky-500','border-l-4 border-l-sky-500')}
+        ${rg(zeroStock,'หมด Stock ต้องทำด่วน','fa-solid fa-circle-exclamation','text-red-500','border-l-4 border-l-red-500')}
+        ${rg(lowStock,'Stock เหลือน้อย (1-5)','fa-solid fa-triangle-exclamation','text-amber-500','border-l-4 border-l-amber-500')}
     </div>`;
 }
 
 // ===========================
-// RENDER: TODO
+// RENDER: TODO KANBAN
 // ===========================
 function renderTodoPage() {
-    const content=document.getElementById('tab-content');const pending=todoItems.filter(t=>!t.done);const done=todoItems.filter(t=>t.done);
-    const pLabel={high:'🔴 ด่วน',medium:'🟡 ปานกลาง',low:'🟢 ทำได้เลย'};const pClass={high:'priority-high',medium:'priority-medium',low:'priority-low'};
-    content.innerHTML=`
-    <div class="fade-in">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"><h1 class="text-2xl font-bold text-main">✅ Todo List</h1><span class="text-sub text-sm">${pending.length} เหลือ / ${done.length} เสร็จ</span></div>
-        ${renderNoteBox('todo')}
-        <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle mb-6"><div class="flex gap-3 items-center flex-wrap">
-            <input id="todo-input" class="flex-1 min-w-[200px] px-4 py-2.5 rounded-lg input-bg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เพิ่มสิ่งที่ต้องทำ..." onkeypress="if(event.key==='Enter')addTodo()">
-            <select id="todo-priority" class="px-3 py-2.5 rounded-lg input-bg text-sm"><option value="medium">🟡 ปานกลาง</option><option value="high">🔴 ด่วน</option><option value="low">🟢 ทำได้เลย</option></select>
-            <button onclick="addTodo()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-plus mr-1"></i>เพิ่ม</button>
-        </div></div>
-        <div class="space-y-2 mb-8">${pending.length===0?'<div class="text-center py-8 text-sub">ไม่มีงานค้าง 🎉</div>':''}
-            ${pending.map(t=>{const ri=todoItems.indexOf(t);return `
-            <div class="card-bg rounded-xl shadow-sm p-4 border border-subtle ${pClass[t.priority]} flex items-center gap-3 hover-bg transition-colors">
-                <button onclick="toggleTodo(${ri})" class="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-indigo-500 flex-shrink-0 transition-colors"></button>
-                <div class="flex-1 min-w-0"><p class="text-sm text-main font-medium">${t.text}</p><p class="text-xs text-sub mt-0.5">${pLabel[t.priority]} · ${t.date}</p></div>
-                <button onclick="deleteTodo(${ri})" class="text-sub hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
-            </div>`;}).join('')}
-        </div>
-        ${done.length>0?`<div class="mb-4 flex items-center justify-between"><h3 class="text-sm font-semibold text-sub">เสร็จแล้ว (${done.length})</h3><button onclick="clearDoneTodos()" class="text-xs text-red-500 hover:text-red-700">ล้างทั้งหมด</button></div>
-        <div class="space-y-2 opacity-60">${done.map(t=>{const ri=todoItems.indexOf(t);return `
-            <div class="card-bg rounded-xl shadow-sm p-4 border border-subtle flex items-center gap-3">
-                <button onclick="toggleTodo(${ri})" class="w-6 h-6 rounded-full bg-indigo-500 flex-shrink-0 flex items-center justify-center text-white text-xs"><i class="fa-solid fa-check"></i></button>
-                <p class="text-sm text-sub line-through flex-1">${t.text}</p>
-                <button onclick="deleteTodo(${ri})" class="text-sub hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
-            </div>`;}).join('')}</div>`:''}
-    </div>`;
-}
-function addTodo(){const input=document.getElementById('todo-input');const text=input.value.trim();if(!text)return;todoItems.push({text,priority:document.getElementById('todo-priority').value,done:false,date:new Date().toLocaleDateString('th-TH')});localStorage.setItem('todo_items',JSON.stringify(todoItems));input.value='';renderTodoPage();}
-function toggleTodo(i){todoItems[i].done=!todoItems[i].done;localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();}
-function deleteTodo(i){todoItems.splice(i,1);localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();}
-function clearDoneTodos(){todoItems=todoItems.filter(t=>!t.done);localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();}
-
-// ===========================
-// RENDER: SHEETS PAGE (with custom boxes + notes)
-// ===========================
-async function renderSheetsPage(tab) {
-    let data=sheetsData[tab]; if(!data)return;
-// คัดกรองกล่องที่ถูกผู้ใช้กดลบ (ซ่อน) ออกไป
-const hiddenCards = JSON.parse(localStorage.getItem('hidden_cards') || '{}');
-const hiddenList = hiddenCards[tab] || [];
-data = data.filter(sheet => !hiddenList.includes(sheet.title));
-    const titles={main:'ภาพรวมสต็อกบทความและโพสต์',youtube:'ภาพรวมสต็อกคลิป Youtube',yok:'ภาพรวมสต็อกงานหยก',ai:'ภาพรวมสต็อกคอนเทนต์ AI',horoscope:'ภาพรวมสต็อกคอนเทนต์ดูดวง',others:'ภาพรวมสต็อกงานอื่นๆ'};
-    const totalReady=data.reduce((s,i)=>s+i.readyCount,0);const totalWaiting=data.reduce((s,i)=>s+i.waitingCount,0);const showWaiting=tab==='main';
-    const colorMap={main:'indigo',youtube:'red',yok:'emerald',ai:'purple',horoscope:'pink',others:'slate'};const color=colorMap[tab]||'indigo';
-    const itemLabels={main:'พร้อมโพสต์',youtube:'คลิป',yok:'งาน',ai:'งาน AI',horoscope:'ดวง',others:'ชิ้นงาน'};const itemLabel=itemLabels[tab]||'งาน';
-    const sortedTop=[...data].sort((a,b)=>b.readyCount-a.readyCount).slice(0,10);
-
-    // Fetch custom boxes for this sheet tab
-    if(customBoxes[tab]) await fetchCustomBoxValues(tab);
-
     const content=document.getElementById('tab-content');
-    content.innerHTML=`
-    <div class="fade-in">
+    const searchTerm=(document.getElementById('todo-search')?.value||'').toLowerCase();
+    const filtered=todoItems.filter(t=>t.text.toLowerCase().includes(searchTerm)||(t.category&&t.category.toLowerCase().includes(searchTerm)));
+    const cols={waiting:{title:'🕒 รอดำเนินการ',items:filtered.filter(t=>t.column==='waiting')},processing:{title:'⚡ กำลังทำ',items:filtered.filter(t=>t.column==='processing')},finished:{title:'✅ เสร็จแล้ว',items:filtered.filter(t=>t.column==='finished')}};
+    content.innerHTML=`<div class="fade-in">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <h1 class="text-2xl font-bold text-main">${titles[tab]||tab}</h1>
-            <div class="flex gap-2">
-                <button onclick="openModal('modal-create-box')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
-                <button onclick="sheetsData['${tab}']=null;fetchData('${tab}',true)" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors flex items-center gap-2"><i class="fa-solid fa-rotate-right"></i> อัปเดต</button>
+            <h1 class="text-2xl font-bold text-main">✅ Smart Task Center</h1>
+            <button onclick="clearDoneTodos()" class="text-xs text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">ล้างงานเสร็จแล้ว</button>
+        </div>
+        ${renderNoteBox('todo')}
+        <div class="card-bg rounded-2xl shadow-sm p-4 border border-subtle mb-8 glass-card">
+            <div class="flex gap-4 items-center flex-wrap">
+                <div class="flex-1 min-w-[200px] relative"><i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5" style="color:var(--primary)"></i><input id="todo-search" oninput="renderTodoPage()" class="w-full pl-10 pr-4 py-2.5 rounded-xl input-bg" placeholder="ค้นหางาน..."></div>
+                <div class="flex-1 min-w-[200px] relative"><i class="fa-solid fa-plus absolute left-4 top-3.5" style="color:var(--primary)"></i><input id="todo-input" class="w-full pl-10 pr-4 py-2.5 rounded-xl input-bg" placeholder="เพิ่มงานใหม่..."></div>
+                <input id="todo-category" class="w-32 px-4 py-2.5 rounded-xl input-bg text-sm" placeholder="หมวดหมู่">
+                <input id="todo-deadline" type="date" class="px-4 py-2.5 rounded-xl input-bg text-sm">
+                <select id="todo-priority" class="px-3 py-2.5 rounded-xl input-bg text-sm"><option value="medium">🟡 ปานกลาง</option><option value="high">🔴 ด่วน</option><option value="low">🟢 เบาๆ</option></select>
+                <button onclick="addTodo()" class="text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg" style="background-color:var(--primary)">เพิ่มงาน</button>
             </div>
         </div>
-
-        ${renderNoteBox(tab)}
-        <div id="custom-boxes-section">${renderCustomBoxesHTML(tab)}</div>
-
-        <div class="grid ${showWaiting?'grid-cols-1 md:grid-cols-2':'grid-cols-1'} gap-6 mb-8">
-            <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle flex items-center gap-4 border-l-4 border-l-emerald-500"><div class="bg-emerald-100 p-4 rounded-xl text-emerald-600 text-2xl"><i class="fa-solid fa-boxes-stacked"></i></div><div><p class="text-sm text-sub font-medium">${tab==='main'?'รวม Stock พร้อมโพสต์':'รวม Stock งาน'}ทั้งหมด</p><h2 class="text-3xl font-bold text-main">${totalReady.toLocaleString()}</h2></div></div>
-            ${showWaiting?`<div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle flex items-center gap-4 border-l-4 border-l-amber-500"><div class="bg-amber-100 p-4 rounded-xl text-amber-600 text-2xl"><i class="fa-solid fa-hourglass-half"></i></div><div><p class="text-sm text-sub font-medium">รวม Stock ค้างรอสร้างทั้งหมด</p><h2 class="text-3xl font-bold text-main">${totalWaiting.toLocaleString()}</h2></div></div>`:''}
+        <div class="kanban-grid">
+            ${Object.entries(cols).map(([id,col])=>`
+                <div class="kanban-col border" style="background:rgba(0,0,0,0.1);border-color:var(--border-dark)" ondragover="event.preventDefault()" ondrop="dropToColumn(event,'${id}')">
+                    <div class="flex items-center justify-between mb-4 px-2"><h3 class="font-bold text-sm text-main uppercase tracking-wider">${col.title}</h3><span class="text-[10px] px-2 py-0.5 rounded-full font-bold" style="background:var(--primary-glow);color:var(--primary)">${col.items.length}</span></div>
+                    <div class="space-y-3" id="col-${id}">
+                        ${col.items.map(t=>renderTodoCard(t)).join('')}
+                        ${col.items.length===0?`<div class="text-center py-10 text-[10px] text-sub border-2 border-dashed rounded-xl" style="border-color:var(--border-dark)">วางงานที่นี่</div>`:''}
+                    </div>
+                </div>`).join('')}
         </div>
-
-        <div class="card-bg rounded-2xl shadow-sm p-6 border border-subtle mb-8"><h2 class="text-lg font-bold text-main mb-4"><i class="fa-solid fa-ranking-star text-yellow-500 mr-2"></i> Top 10 Stock เยอะที่สุด</h2><div class="relative h-72 w-full"><canvas id="sheetChart"></canvas></div></div>
-
-        <div class="mb-6 relative"><i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i><input type="text" id="sheet-search" onkeyup="filterSheetCards()" placeholder="ค้นหาชื่องาน..." class="w-full pl-11 pr-4 py-3 rounded-xl input-bg shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"></div>
-
-        <div id="sheets-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>`;
-
-    setupDragAndDrop(tab);
-
-    // Chart
-    const ctx=document.getElementById('sheetChart').getContext('2d');if(chartInstance)chartInstance.destroy();
-    const cRGB={indigo:[79,70,229],red:[220,38,38],emerald:[16,185,129],purple:[168,85,247],pink:[236,72,153],slate:[100,116,139]};const c=cRGB[color]||cRGB.indigo;
-    chartInstance=new Chart(ctx,{type:'bar',data:{labels:sortedTop.map(i=>i.title),datasets:[{label:'จำนวน Stock',data:sortedTop.map(i=>i.readyCount),backgroundColor:sortedTop.map((_,i)=>`rgba(${c[0]},${c[1]},${c[2]},${i===0?0.8:0.4})`),borderColor:`rgb(${c[0]},${c[1]},${c[2]})`,borderWidth:1,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} รายการ`}}},scales:{y:{beginAtZero:true,grid:{color:isDark?'#334155':'#f3f4f6'}},x:{grid:{display:false},ticks:{callback:function(v){const l=this.getLabelForValue(v);return l.length>15?l.substr(0,15)+'...':l;}}}}}});
-
-    // Cards
-    const grid=document.getElementById('sheets-cards-grid');
-    data.forEach(sheet=>{
-        const hasReady=sheet.readyCount>0;const hasWaiting=sheet.waitingCount>0;
-        const readyBadge=hasReady?`<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-check-circle mr-1"></i>มี Stock</span>`:`<span class="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full">ไม่มี Stock</span>`;
-        const waitingBadge=hasWaiting?`<span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-clock mr-1"></i>รอสร้าง (${sheet.waitingCount})</span>`:`<span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full"><i class="fa-solid fa-thumbs-up mr-1"></i>สร้างครบ</span>`;
-        const waitingRow=tab==='main'?`<div class="flex justify-between items-center mt-3 pt-3 border-t border-subtle"><div><span class="text-sm text-sub">Stock รอสร้าง</span><br><span class="text-2xl font-bold text-amber-500">${sheet.waitingCount}</span></div><div class="text-right">${waitingBadge}</div></div>`:'';
-        const url=sheet.link||`https://docs.google.com/spreadsheets/d/${sheet.sheetId}/edit`;
-        grid.innerHTML+=`
-        <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group sheet-card">
-            ${hasReady?`<div class="absolute top-0 right-0 w-2 h-full bg-${color}-500"></div>`:''}
-            ${hasWaiting&&tab==='main'?`<div class="absolute top-0 right-0 w-2 h-full bg-amber-400"></div>`:''}
-            <div class="flex justify-between items-start mb-4">
-    <h3 class="font-bold text-lg text-main truncate sheet-title pr-4" title="${sheet.title}">${sheet.title}</h3>
-    <button onclick="event.stopPropagation(); deleteSheetCard('${tab}', \`${sheet.title}\`)" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="ลบกล่องนี้">
-        <i class="fa-solid fa-trash"></i>
-    </button>
-</div>
-            <div class="space-y-2"><div class="flex justify-between items-center"><div><span class="text-sm text-sub">จำนวน Stock ${itemLabel}</span><br><span class="text-2xl font-bold text-${color}-500">${sheet.readyCount}</span></div><div class="text-right">${readyBadge}</div></div>${waitingRow}</div>
-            <div class="mt-5 pt-3 border-t border-subtle"><a href="${url}" target="_blank" class="text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1 font-medium transition-colors">เปิดใน Google Sheets <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1"></i></a></div>
-        </div>`;
-    });
 }
-function filterSheetCards(){const q=document.getElementById('sheet-search').value.toLowerCase();document.querySelectorAll('.sheet-card').forEach(card=>{card.style.display=card.querySelector('.sheet-title').innerText.toLowerCase().includes(q)?'block':'none';});}
+function renderTodoCard(t) {
+    const idx=todoItems.indexOf(t);
+    const pClass={high:'border-l-rose-500',medium:'border-l-amber-500',low:'border-l-emerald-500'};
+    let isUrgent=false; if(t.deadline&&t.column!=='finished'){const today=new Date().toISOString().split('T')[0];if(t.deadline<=today)isUrgent=true;}
+    return `<div class="glass-card p-4 rounded-2xl shadow-sm border-l-4 ${pClass[t.priority]} kanban-item group relative" draggable="true" ondragstart="dragTodo(event,${idx})">
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+                ${t.category?`<span class="badge ${t.priority==='high'?'badge-urgent':'badge-normal'}">${t.category}</span>`:'<span></span>'}
+                <button onclick="deleteTodo(${idx})" class="text-sub hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><i class="fa-solid fa-trash text-[10px]"></i></button>
+            </div>
+            <p class="text-sm font-semibold text-main ${t.column==='finished'?'line-through opacity-50':''}">${t.text}</p>
+            <div class="flex items-center justify-between mt-1">
+                <div class="flex items-center gap-1.5 text-[9px] ${isUrgent?'deadline-warning':'text-sub'}"><i class="fa-solid fa-clock"></i><span>${t.deadline||'ไม่มีกำหนด'}</span></div>
+                <div class="flex gap-1">
+                    ${t.column!=='waiting'?`<button onclick="moveTodoColumn(${idx},'waiting')" class="text-sub hover:text-indigo-500"><i class="fa-solid fa-arrow-left text-[9px]"></i></button>`:''}
+                    ${t.column!=='finished'?`<button onclick="moveTodoColumn(${idx},'finished')" class="text-sub hover:text-emerald-500"><i class="fa-solid fa-check text-[9px]"></i></button>`:''}
+                    ${t.column==='waiting'?`<button onclick="moveTodoColumn(${idx},'processing')" class="text-sub hover:text-amber-500"><i class="fa-solid fa-arrow-right text-[9px]"></i></button>`:''}
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+function dragTodo(ev,idx){ev.dataTransfer.setData("todoIdx",idx);}
+function dropToColumn(ev,col){ev.preventDefault();const idx=ev.dataTransfer.getData("todoIdx");moveTodoColumn(parseInt(idx),col);}
+function moveTodoColumn(idx,col){todoItems[idx].column=col;todoItems[idx].done=(col==='finished');localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();renderSidebars();}
+function addTodo(){const input=document.getElementById('todo-input');const text=input.value.trim();if(!text)return;const category=document.getElementById('todo-category').value.trim();const deadline=document.getElementById('todo-deadline').value;const priority=document.getElementById('todo-priority').value;todoItems.unshift({text,priority,done:false,date:new Date().toLocaleDateString('th-TH'),category,deadline,column:'waiting'});localStorage.setItem('todo_items',JSON.stringify(todoItems));input.value='';document.getElementById('todo-category').value='';document.getElementById('todo-deadline').value='';renderTodoPage();renderSidebars();}
+function deleteTodo(i){if(!confirm('ลบงานนี้?'))return;todoItems.splice(i,1);localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();renderSidebars();}
+function clearDoneTodos(){if(!confirm('ลบงานเสร็จแล้วทั้งหมด?'))return;todoItems=todoItems.filter(t=>t.column!=='finished');localStorage.setItem('todo_items',JSON.stringify(todoItems));renderTodoPage();renderSidebars();}
 
 // ===========================
 // RENDER: CUSTOM TAB PAGE
 // ===========================
 async function renderCustomTabPage(tabId) {
     const content=document.getElementById('tab-content');const tab=getAllTabs().find(t=>t.id===tabId);const boxes=customBoxes[tabId]||[];
-    content.innerHTML=`<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent mb-3"></div><p class="text-sub">กำลังโหลด...</p></div>`;
+    content.innerHTML=`<div class="text-center py-10"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-t-transparent mb-3" style="border-color:var(--primary);border-top-color:transparent;"></div><p class="text-sub">กำลังโหลด...</p></div>`;
     await fetchCustomBoxValues(tabId);
-    content.innerHTML=`
-    <div class="fade-in">
+    content.innerHTML=`<div class="fade-in">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div><h1 class="text-2xl font-bold text-main">${tab?tab.emoji:''} ${tab?tab.name:tabId}</h1><p class="text-sub text-sm mt-1">กล่องติดตามงานที่กำหนดเอง</p></div>
             <div class="flex gap-2">
-                <button onclick="openModal('modal-create-box')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
-                <button onclick="renderCustomTabPage('${tabId}')" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg transition-colors"><i class="fa-solid fa-rotate-right"></i></button>
-                <button onclick="deleteCustomTab('${tabId}')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"><i class="fa-solid fa-trash"></i></button>
+                <button onclick="openModal('modal-create-box')" class="text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2" style="background-color:var(--primary)"><i class="fa-solid fa-plus"></i> เพิ่มกล่อง</button>
+                <button onclick="renderCustomTabPage('${tabId}')" class="card-bg text-main px-4 py-2 rounded-lg shadow border border-subtle hover-bg"><i class="fa-solid fa-rotate-right"></i></button>
+                <button onclick="deleteCustomTab('${tabId}')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"><i class="fa-solid fa-trash"></i></button>
             </div>
         </div>
         ${renderNoteBox(tabId)}
-        ${boxes.length===0?`
-        <div class="text-center py-16"><div class="text-6xl mb-4">📦</div><h3 class="text-lg font-semibold text-main mb-2">ยังไม่มีกล่องติดตามงาน</h3><p class="text-sub text-sm mb-6">กดปุ่ม "เพิ่มกล่อง" เพื่อสร้างกล่องแรก</p>
-        <button onclick="openModal('modal-create-box')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-plus mr-2"></i>สร้างกล่องแรก</button></div>`:`
+        ${boxes.length===0?`<div class="text-center py-16"><div class="text-6xl mb-4">📦</div><h3 class="text-lg font-semibold text-main mb-2">ยังไม่มีกล่อง</h3><button onclick="openModal('modal-create-box')" class="text-white px-6 py-3 rounded-lg font-semibold" style="background-color:var(--primary)"><i class="fa-solid fa-plus mr-2"></i>สร้างกล่องแรก</button></div>`:`
         <div id="custom-boxes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             ${boxes.map((box,idx)=>{const c=box.color||'indigo';const val=box.value!==null?box.value:'...';return `
             <div class="glass-card rounded-2xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden border-l-4 border-l-${c}-500 draggable-box group" data-idx="${idx}">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-2 min-w-0"><span class="text-2xl flex-shrink-0">${box.emoji}</span><h4 class="font-bold text-main truncate">${box.name}</h4></div>
-                    <div class="flex gap-1.5">
-                        <button onclick="event.stopPropagation();openEditBox('${tabId}',${idx})" class="text-sub hover:text-indigo-500 transition-colors opacity-0 group-hover:opacity-100" title="แก้ไข"><i class="fa-solid fa-pen text-xs"></i></button>
-                        <button onclick="event.stopPropagation();deleteBoxDirect('${tabId}',${idx})" class="text-sub hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="ลบ"><i class="fa-solid fa-trash text-xs"></i></button>
-                    </div>
-                </div>
+                <div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2 min-w-0"><span class="text-2xl flex-shrink-0">${box.emoji}</span><h4 class="font-bold text-main truncate">${box.name}</h4></div>
+                <div class="flex gap-1.5"><button onclick="event.stopPropagation();openEditBox('${tabId}',${idx})" class="text-sub opacity-0 group-hover:opacity-100" style="color:var(--primary)"><i class="fa-solid fa-pen text-xs"></i></button>
+                <button onclick="event.stopPropagation();deleteBoxDirect('${tabId}',${idx})" class="text-sub hover:text-red-500 opacity-0 group-hover:opacity-100"><i class="fa-solid fa-trash text-xs"></i></button></div></div>
                 <div class="text-3xl font-bold text-${c}-500 mb-2">${val}</div>
-                ${box.link?`<a href="${box.link}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-indigo-500 hover:text-indigo-700 flex items-center gap-1 font-medium">เปิดลิงก์ <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px"></i></a>`:''}
-                <div class="absolute top-2 right-12 text-sub cursor-grab opacity-0 group-hover:opacity-60"><i class="fa-solid fa-grip-vertical text-xs"></i></div>
-            </div>`;}).join('')}
+                ${box.link?`<a href="${box.link}" target="_blank" onclick="event.stopPropagation()" class="text-xs font-medium flex items-center gap-1" style="color:var(--primary)">เปิดลิงก์ <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px"></i></a>`:''}</div>`;}).join('')}
         </div>`}
     </div>`;
     setupDragAndDrop(tabId);
 }
-
-function deleteSheetCard(tab, title) {
-    if(!confirm(`ต้องการลบกล่อง "${title}" ออกจากหน้าจอนี้ใช่หรือไม่?`)) return;
-    
-    // บันทึกชื่อกล่องที่ถูกลบลงใน localStorage
-    let hiddenCards = JSON.parse(localStorage.getItem('hidden_cards') || '{}');
-    if(!hiddenCards[tab]) hiddenCards[tab] = [];
-    hiddenCards[tab].push(title);
-    localStorage.setItem('hidden_cards', JSON.stringify(hiddenCards));
-    
-    // รีโหลดหน้าแท็บนั้นใหม่
-    renderSheetsPage(tab);
-}
-
 </script>
 </body>
 </html>
